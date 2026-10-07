@@ -78,7 +78,7 @@ const GoogleSignInButton: FC<GoogleSignInButtonProps> = ({
       disabled={isLoadingState || disabled}
       variant="outline"
       size="lg"
-      className="text-base p-6 font-normal border-foreground hover:border-teal-500 hover:bg-transparent hover:scale-[1.1] rounded-3xl cursor-pointer"
+      className="w-full text-base p-6 font-semibold rounded-xl border-border bg-background hover:border-teal-500 hover:bg-teal-500/5 transition-colors cursor-pointer"
     >
       <div className="flex items-center justify-center gap-3">
         {isLoadingState ? (
