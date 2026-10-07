@@ -11,6 +11,8 @@ interface GoogleSignInButtonProps {
   onSignIn?: () => void;
   onError?: (error: string) => void;
   disabled?: boolean;
+  label?: string;
+  loadingLabel?: string;
 }
 
 const GoogleSignInButton: FC<GoogleSignInButtonProps> = ({
@@ -18,6 +20,8 @@ const GoogleSignInButton: FC<GoogleSignInButtonProps> = ({
   onSignIn,
   onError,
   disabled = false,
+  label = "Sign in with Google",
+  loadingLabel = "Signing in with Google...",
 }) => {
   const [internalLoading, setInternalLoading] = useState(false);
   const params = useSearchParams();
@@ -84,7 +88,7 @@ const GoogleSignInButton: FC<GoogleSignInButtonProps> = ({
         {isLoadingState ? (
           <>
             <div className="animate-spin rounded-full h-4 w-4 border-2 border-foreground border-t-transparent" />
-            <span>Signing in with Google...</span>
+            <span>{loadingLabel}</span>
           </>
         ) : (
           <>
@@ -111,7 +115,7 @@ const GoogleSignInButton: FC<GoogleSignInButtonProps> = ({
                 fill="#EA4335"
               />
             </svg>
-            <span>Sign in with Google</span>
+            <span>{label}</span>
           </>
         )}
       </div>

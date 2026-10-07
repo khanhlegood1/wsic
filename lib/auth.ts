@@ -1,4 +1,5 @@
 import { betterAuth } from "better-auth";
+import { anonymous } from "better-auth/plugins";
 import { Pool } from "pg";
 
 export const auth = betterAuth({
@@ -12,6 +13,11 @@ export const auth = betterAuth({
     password: process.env.POSTGRES_PASSWORD,
     ssl: true,
   }),
+  emailAndPassword: {
+    enabled: true,
+    minPasswordLength: 8,
+  },
+  plugins: [anonymous()],
   socialProviders: {
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID as string,
