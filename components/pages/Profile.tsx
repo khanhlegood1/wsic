@@ -84,7 +84,7 @@ const Profile = () => {
                             <h3 className="text-xl font-semibold text-foreground/90">
                                 {session.user?.name ?? "User"}
                             </h3>
-                            {session.user?.email && (
+                            {session.user?.email && !session.user?.isAnonymous && (
                                 <p className="text-sm text-muted-foreground/80">
                                     {session.user.email}
                                 </p>

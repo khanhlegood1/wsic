@@ -17,7 +17,7 @@ export const auth = betterAuth({
     enabled: true,
     minPasswordLength: 8,
   },
-  plugins: [anonymous()],
+  plugins: [anonymous({ emailDomainName: "guest.wsic.app" })],
   socialProviders: {
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID as string,

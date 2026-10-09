@@ -70,7 +70,7 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
             <span className="text-sm font-medium truncate">
               {session.user?.name ?? "User"}
             </span>
-            {session.user?.email && (
+            {session.user?.email && !session.user?.isAnonymous && (
               <span className="text-xs text-muted-foreground truncate">
                 {session.user.email}
               </span>
