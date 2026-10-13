@@ -18,6 +18,7 @@
 ## 📖 Documentation Files
 
 - **[Getting Started](./getting-started.md)** - Setup and installation guide
+- **[Architecture (Tiếng Việt)](./architecture.md)** - Sơ đồ kiến trúc đầy đủ: tổng quan, frontend, tìm kiếm, sinh nội dung, đa tác tử, xác thực, mô hình dữ liệu
 - **[Project Structure](./project-structure.md)** - Codebase organization and architecture
 - **[API Reference](./api-reference.md)** - Authentication and database integration
 - **[Components](./components.md)** - React component documentation

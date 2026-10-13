@@ -1,0 +1,137 @@
+digraph fe {
+  graph [
+    rankdir=LR, fontsize=24, labelloc="t",
+    label="WSIC — Cấu trúc frontend: routing, layout, providers (Next.js 16 App Router)",
+    fontname="DejaVu Sans", bgcolor="#ffffff", pad=0.4, nodesep=0.35, ranksep=1.1, compound=true, newrank=true
+  ];
+  node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=12, color="#3c4043", penwidth=1.3, fillcolor="#ffffff", margin="0.16,0.11"];
+  edge [fontname="DejaVu Sans", fontsize=10, color="#5f6368", penwidth=1.2, arrowsize=0.65, fontcolor="#3c4043"];
+
+  root [fillcolor="#e6f4ea", color="#137333", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+    <TR><TD ALIGN="LEFT"><B>app/layout.tsx — layout gốc (server component)</B></TD></TR>
+    <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">auth.api.getSession({ headers }) → truyền session xuống TopBar</FONT></TD></TR>
+    <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">TopBar · Footer · &lt;Toaster /&gt; · MetaThemeAndBgColor</FONT></TD></TR>
+    <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">Vercel Analytics + SpeedInsights</FONT></TD></TR>
+  </TABLE>>];
+
+  providers [fillcolor="#f0f8f2", color="#137333", style="rounded,dashed", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+    <TR><TD ALIGN="LEFT"><B>providers/ — bọc ngoài toàn bộ ứng dụng</B></TD></TR>
+    <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">ConvexClientProvider → ConvexReactClient (WebSocket realtime)</FONT></TD></TR>
+    <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">QueryClientProvider → TanStack Query (staleTime 5 phút, retry 3)</FONT></TD></TR>
+    <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">ThemeProvider → next-themes (sáng/tối, attribute="class")</FONT></TD></TR>
+  </TABLE>>];
+
+  subgraph cluster_pub {
+    label="Route công khai"; labeljust="l"; fontsize=14; fontcolor="#1a73e8";
+    style="rounded,filled"; fillcolor="#f4f8fe"; color="#1a73e8"; penwidth=1.5; margin=14;
+    home  [fillcolor="#ffffff", color="#1a73e8", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+      <TR><TD ALIGN="LEFT"><B>/  ·  app/page.tsx</B> → components/pages/Home.tsx</TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">TopicSearch + TrendingTopics + SuggestedTopics</FONT></TD></TR></TABLE>>];
+    login [fillcolor="#ffffff", color="#1a73e8", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+      <TR><TD ALIGN="LEFT"><B>/login  ·  app/login/layout.tsx + page.tsx</B></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">GoogleSignInButton (OAuth) · AnonymousHelpDialog (ẩn danh)</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">đăng nhập xong → CALLBACK_URL = /user/dashboard</FONT></TD></TR></TABLE>>];
+    errs  [fillcolor="#ffffff", color="#1a73e8", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+      <TR><TD ALIGN="LEFT"><B>Trang lỗi</B></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">app/not-found.tsx · app/error.tsx (error boundary)</FONT></TD></TR></TABLE>>];
+  }
+
+  subgraph cluster_user {
+    label="/user/* — yêu cầu đăng nhập · app/user/layout.tsx (client component: useSession, scroll, khung 3 cột)";
+    labeljust="l"; fontsize=14; fontcolor="#137333";
+    style="rounded,filled"; fillcolor="#f0f8f2"; color="#137333"; penwidth=1.5; margin=14;
+
+    ulayout [fillcolor="#ffffff", color="#137333", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+      <TR><TD ALIGN="LEFT"><B>app/user/layout.tsx</B></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">Sidebar trái: NavigationSidebar (navigationItems)</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">+ TopicSearch · SubscriptionCard</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">Sidebar phải: TrendingTopics</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">Màn hình nhỏ: MobileBottomNavigation</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">  (mobileNavigationItems: Home · Explore · Saved · Notes</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">   · Communities · Profile)</FONT></TD></TR>
+    </TABLE>>];
+
+    dash  [fillcolor="#e6f4ea", color="#137333", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+      <TR><TD ALIGN="LEFT"><B>/user/dashboard</B> → components/pages/Home.tsx</TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">TopicSearch + TopicGrid</FONT></TD></TR></TABLE>>];
+    srch  [fillcolor="#e6f4ea", color="#137333", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+      <TR><TD ALIGN="LEFT"><B>/user/search</B> → components/pages/SearchResults.tsx</TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">tìm kiếm hai nhánh — xem sơ đồ 04</FONT></TD></TR></TABLE>>];
+    expl  [fillcolor="#ffffff", color="#137333", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+      <TR><TD ALIGN="LEFT"><B>/user/explore</B> và <B>/user/explore/category/[slug]</B></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">components/pages/Explore.tsx · Category.tsx · CategoryCard</FONT></TD></TR></TABLE>>];
+    saved [fillcolor="#ffffff", color="#137333", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+      <TR><TD ALIGN="LEFT"><B>/user/saved</B> → components/pages/Saved.tsx</TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">hooks/useUserTopics + convex/users.getSavedTopics</FONT></TD></TR></TABLE>>];
+    prof  [fillcolor="#ffffff", color="#137333", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+      <TR><TD ALIGN="LEFT"><B>/user/profile</B> → components/pages/Profile.tsx</TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">hooks/useUserTopics + SubscriptionCard</FONT></TD></TR></TABLE>>];
+    notes [fillcolor="#ffffff", color="#137333", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+      <TR><TD ALIGN="LEFT"><B>/user/notes</B> · <B>/user/communities</B></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">trang đang phát triển (xem todo.md)</FONT></TD></TR></TABLE>>];
+  }
+
+  subgraph cluster_topic {
+    label="/topic/* — trang nội dung, bị proxy.ts chặn nếu chưa đăng nhập · app/topic/layout.tsx thêm sidebar ngữ cảnh";
+    labeljust="l"; fontsize=14; fontcolor="#c5221f";
+    style="rounded,filled"; fillcolor="#fdf3f2"; color="#c5221f"; penwidth=1.5; margin=14;
+
+    tlayout [fillcolor="#ffffff", color="#c5221f", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+      <TR><TD ALIGN="LEFT"><B>app/topic/layout.tsx</B></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">sidebar theo dõi tiến trình đọc · share-dialog · meta og:</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">url dùng NEXT_PUBLIC_BASE_URL + pathname</FONT></TD></TR>
+    </TABLE>>];
+    tpage [fillcolor="#ffffff", color="#c5221f", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+      <TR><TD ALIGN="LEFT"><B>/topic/[id]</B> → components/pages/Topic.tsx</TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">server: generateMetadata() → fetchQuery(api.topics.getTopicById)</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">client hooks: useTopic · useTopicInteractions · useNotifications</FONT></TD></TR>
+    </TABLE>>];
+    tblocks [fillcolor="#ffffff", color="#c5221f", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+      <TR><TD ALIGN="LEFT"><B>components/content/* — render từng block theo content.step</B></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">Block.tsx (điều phối) · Summary.tsx (flash cards) · MultiQuiz.tsx</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">Reorder.tsx · SimilarTopics.tsx · TrendingTopics.tsx · TopicGrid.tsx</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">CategoryCard.tsx · SuggestedTopics.tsx · SelectHolder.tsx</FONT></TD></TR>
+    </TABLE>>];
+  }
+
+  subgraph cluster_api {
+    label="app/api/* — route nền (không nằm trong khung trang hiển thị)"; labeljust="l"; fontsize=14; fontcolor="#8430ce";
+    style="rounded,dashed,filled"; fillcolor="#faf3ff"; color="#8430ce"; penwidth=1.5; margin=14;
+    api_auth [fillcolor="#ffffff", color="#8430ce", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+      <TR><TD ALIGN="LEFT"><B>/api/auth/[...all]</B> → better-auth</TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">toNextJsHandler(auth) — sơ đồ 05</FONT></TD></TR></TABLE>>];
+    api_q    [fillcolor="#ffffff", color="#8430ce", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+      <TR><TD ALIGN="LEFT"><B>/api/queue-topic-request</B> → QStash</TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">đẩy yêu cầu sinh nội dung — sơ đồ 02</FONT></TD></TR></TABLE>>];
+    api_h    [fillcolor="#ffffff", color="#8430ce", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+      <TR><TD ALIGN="LEFT"><B>/api/health/auth</B> → chẩn đoán</TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">kiểm tra biến môi trường + PostgreSQL</FONT></TD></TR></TABLE>>];
+  }
+
+  root -> providers [style=dotted, label="bọc ngoài", color="#137333", fontcolor="#137333"];
+  root -> home  [label="render"];
+  root -> login [label="render"];
+  root -> errs  [label="render"];
+  root -> ulayout    [label="render"];
+  root -> tlayout    [label="render"];
+  root -> api_auth [label="xử lý request", style=dashed];
+
+  ulayout -> dash  [label="children"];
+  ulayout -> srch  [label="children"];
+  ulayout -> expl  [label="children"];
+  ulayout -> saved [label="children"];
+  ulayout -> prof  [label="children"];
+  ulayout -> notes [label="children"];
+
+  tlayout -> tpage [label="children"];
+  tpage -> tblocks [label="dữ liệu block"];
+
+  srch -> tpage [label="mở kết quả", style=dashed, color="#5f6368", constraint=false];
+  login -> dash [label="đăng nhập xong", style=dashed, color="#137333", fontcolor="#137333", constraint=false];
+  home -> srch [label="gõ từ khoá tìm kiếm", style=dashed, constraint=false];
+  api_q -> srch [style=invis];
+
+  { rank=same; home; login; errs; api_auth; api_q; api_h; }
+  { rank=same; providers; ulayout; tlayout; }
+  { rank=same; dash; srch; expl; saved; prof; notes; tpage; }
+}

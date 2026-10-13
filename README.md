@@ -183,6 +183,7 @@ Explore the comprehensive documentation to understand WSIC's architecture and ca
 - **[Search System](./docs/search-system.md)** - Dual search strategy with vector embeddings
 - **[Topic Generation](./docs/topic-generation.md)** - AI-powered content creation pipeline
 - **[API Reference](./docs/api-reference.md)** - Authentication and database integration
+- **[Architecture diagrams (Tiếng Việt)](./docs/architecture.md)** - Sơ đồ kiến trúc hệ thống, frontend, tìm kiếm, pipeline đa tác tử, xác thực và mô hình dữ liệu
 - **[Project Structure](./docs/project-structure.md)** - Codebase organization and architecture
 
 ---

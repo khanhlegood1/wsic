@@ -1,0 +1,77 @@
+digraph search {
+  graph [
+    rankdir=TB, fontname="DejaVu Sans", fontsize=24, labelloc="t",
+    label="WSIC — Hệ thống tìm kiếm hai nhánh (full-text + vector ngữ nghĩa)",
+    bgcolor="#ffffff", pad=0.5, nodesep=0.5, ranksep=0.6, compound=true, newrank=true
+  ];
+  node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=13, color="#3c4043", penwidth=1.3, fillcolor="#ffffff", margin="0.2,0.14"];
+  edge [fontname="DejaVu Sans", fontsize=11, color="#5f6368", penwidth=1.3, arrowsize=0.72, fontcolor="#3c4043"];
+
+  ui [fillcolor="#e8f0fe", color="#1a73e8", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+    <TR><TD ALIGN="LEFT"><B>components/pages/SearchResults.tsx</B>  (client component)</TD></TR>
+    <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">URL: /user/search?topic=…&amp;difficulty=beginner|intermediate|advanced</FONT></TD></TR>
+    <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">useSession() để lấy user · SelectHolder đổi độ khó · Block / TopicCard hiển thị kết quả</FONT></TD></TR></TABLE>>];
+
+  subgraph cluster_text {
+    label="Nhánh 1 — tìm kiếm toàn văn (nhanh, chính xác theo tiêu đề)"; labeljust="l"; fontsize=14; fontcolor="#137333";
+    style="rounded,filled"; fillcolor="#f0f8f2"; color="#137333"; penwidth=1.4; margin=14;
+    q1 [fillcolor="#ffffff", color="#137333", label="useQuery(api.search.simpleSearchTopics)\n{ searchTerm, difficulty, limit: 5 }"];
+    s1 [fillcolor="#ffffff", color="#137333", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+      <TR><TD ALIGN="LEFT"><B>convex/search.ts · query</B></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">withSearchIndex("search_topics", q =&gt; q.search("title", term)</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">  .eq("isPublished", true))</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">+ filter difficulty  ·  .take(limit)</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">→ trả về nhiều trường được validate bằng v.*</FONT></TD></TR></TABLE>>];
+    q1 -> s1 [label="realtime query\n(WebSocket)"];
+  }
+
+  subgraph cluster_vector {
+    label="Nhánh 2 — tìm kiếm vector ngữ nghĩa (hiểu ý nghĩa câu truy vấn)"; labeljust="l"; fontsize=14; fontcolor="#8430ce";
+    style="rounded,filled"; fillcolor="#faf3ff"; color="#8430ce"; penwidth=1.4; margin=14;
+    q2 [fillcolor="#ffffff", color="#8430ce", label="useAction(api.embeddings.searchSimilarTopicsByTerm)\n{ searchTerm, limit: 10 }  →  useEffect() gọi một lần cho mỗi query"];
+    emb [fillcolor="#ffffff", color="#8430ce", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+      <TR><TD ALIGN="LEFT"><B>1 · Sinh vector cho câu truy vấn</B></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">GoogleGenAI.models.embedContent({ model: "gemini-embedding-001" })</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">→ vector float64 768 chiều</FONT></TD></TR></TABLE>>];
+    vsearch [fillcolor="#ffffff", color="#8430ce", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+      <TR><TD ALIGN="LEFT"><B>2 · ctx.vectorSearch("embeddings", "by_embedding", { vector })</B></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">so khớp cosine trên chỉ mục vector 768 chiều</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">filter: difficulty · categoryId · contentType</FONT></TD></TR>
+    </TABLE>>];
+    ids [fillcolor="#ffffff", color="#8430ce", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+      <TR><TD ALIGN="LEFT"><B>3 · getTopicsByEmbeddingIdsInternal (internalQuery)</B></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">embedding._id → join sang bảng topics, gắn kèm _score</FONT></TD></TR></TABLE>>];
+    q2 -> emb -> vsearch -> ids;
+  }
+
+  classify [fillcolor="#fff7d6", color="#b06000", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+    <TR><TD ALIGN="LEFT"><B>Phân loại kết quả phía client</B></TD></TR>
+    <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">• exactMatches = fullTextMatches có title khớp + đúng difficulty</FONT></TD></TR>
+    <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">• highScoreSimilar = similarTopics có score &gt; NEXT_PUBLIC_SIMILARITY_SCORE (mặc định 0.85) và cùng difficulty</FONT></TD></TR>
+    <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">• foundTopics = exactMatches ∪ highScoreSimilar  → hiện ngay trong kết quả chính</FONT></TD></TR>
+    <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">• relatedTopics = phần còn lại của cả hai nhánh (đã khử trùng lặp) → mục “Chủ đề liên quan”</FONT></TD></TR></TABLE>>];
+
+  findings [fillcolor="#e6f4ea", color="#137333", label="Có kết quả\nfoundTopics.length > 0"];
+  brew [fillcolor="#fce8e6", color="#c5221f", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+    <TR><TD ALIGN="LEFT"><B>Không có kết quả → “Brew your topic”</B></TD></TR>
+    <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">fetch POST /api/queue-topic-request { topic, difficulty, user_id }</FONT></TD></TR>
+    <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">→ xem sơ đồ 02 (luồng sinh nội dung)</FONT></TD></TR></TABLE>>];
+
+  topicPage [fillcolor="#e8f0fe", color="#1a73e8", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+    <TR><TD ALIGN="LEFT"><B>Trang chủ đề — /topic/[id]</B></TD></TR>
+    <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">getSimilarTopics({ topicId }) → lấy embedding CỦA CHÍNH chủ đề</FONT></TD></TR>
+    <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">→ vectorSearch limit 6, bỏ chính nó → 5 chủ đề tương tự (components/content/SimilarTopics.tsx)</FONT></TD></TR></TABLE>>];
+
+  ui -> q1 [label="fullTextMatches"];
+  ui -> q2 [label="similarTopics"];
+  s1 -> classify [label="mảng topics"];
+  ids -> classify [label="topics + score"];
+  classify -> findings [label="foundTopics"];
+  classify -> brew [label="rỗng"];
+  brew -> topicPage [style=invis, constraint=false];
+  findings -> topicPage [label="người dùng mở một chủ đề", style=dashed];
+
+  { rank=same; q1; q2; }
+  { rank=same; s1; ids; }
+  { rank=same; findings; brew; }
+}
