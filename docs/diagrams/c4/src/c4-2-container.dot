@@ -1,0 +1,106 @@
+digraph c4_l2 {
+  graph [
+    rankdir=TB, fontname="DejaVu Sans", fontsize=24, labelloc="t", labeljust="c",
+    label="C4 · Cấp 2 — Sơ đồ Container (Container Diagram)  ·  WSIC\nCác đơn vị triển khai độc lập tạo nên hệ thống và cách chúng trao đổi với nhau",
+    bgcolor="#ffffff", pad=0.5, nodesep=0.5, ranksep=0.9, compound=true, splines=spline, newrank=true
+  ];
+  node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=12, color="#ffffff", penwidth=0, margin="0.24,0.16"];
+  edge [fontname="DejaVu Sans", fontsize=10.5, color="#707070", penwidth=1.4, arrowsize=0.75, fontcolor="#4d4d4d"];
+
+  learner [fillcolor="#08427b", fontcolor="#ffffff", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="1">
+    <TR><TD ALIGN="CENTER"><B>Người học / người tò mò</B></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">[Person]</FONT></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">Dùng trên trình duyệt desktop &amp; di động</FONT></TD></TR>
+  </TABLE>>];
+
+  subgraph cluster_sys {
+    label="[Ranh giới hệ thống WSIC]"; labeljust="l"; fontsize=15; fontcolor="#444444";
+    style="rounded,dashed"; color="#8a8a8a"; penwidth=1.6; margin=20; bgcolor="#fbfbfb";
+
+    web [fillcolor="#438dd5", fontcolor="#ffffff", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="1">
+      <TR><TD ALIGN="CENTER"><B>Ứng dụng Web</B></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">[Container: Next.js 16 · React 19 · TypeScript · Tailwind 4]</FONT></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">Server Components (SSR) · Route Handlers /api/*</FONT></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">Client Components · proxy.ts (chặn /user/*, /topic/*)</FONT></TD></TR>
+    </TABLE>>];
+
+    convex [fillcolor="#438dd5", fontcolor="#ffffff", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="1">
+      <TR><TD ALIGN="CENTER"><B>Convex Deployment — backend chính</B></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">[Container: Convex functions · cron · searchIndex · vectorIndex]</FONT></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">Queries · Mutations · Actions · realtime WebSocket</FONT></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">Dữ liệu: topics · categories · blocks · embeddings</FONT></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">        userTopicInteractions · notifications</FONT></TD></TR>
+    </TABLE>>];
+
+    pg [shape=cylinder, fillcolor="#438dd5", fontcolor="#ffffff", margin="0.3,0.2", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="1">
+      <TR><TD ALIGN="CENTER"><B>PostgreSQL</B></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">[Container: cơ sở dữ liệu]</FONT></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">Bảng better-auth: user · session</FONT></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">account · verification (+ isAnonymous)</FONT></TD></TR>
+    </TABLE>>];
+
+    flask [fillcolor="#438dd5", fontcolor="#ffffff", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="1">
+      <TR><TD ALIGN="CENTER"><B>generator_api — dịch vụ điều phối sinh nội dung</B></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">[Container: Python · Flask · Gunicorn — Render]</FONT></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">GET /ok · POST /check-topic · POST /generate-topic</FONT></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">Quản lý session ADK · bóc JSON khỏi phản hồi model</FONT></TD></TR>
+    </TABLE>>];
+
+    checker [fillcolor="#438dd5", fontcolor="#ffffff", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="1">
+      <TR><TD ALIGN="CENTER"><B>topic-checker</B></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">[Container: Google ADK · Python — Cloud Run]</FONT></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">TopicCheckerAgent kiểm duyệt chủ đề</FONT></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">→ VALID / INVALID + lý do</FONT></TD></TR>
+    </TABLE>>];
+
+    gen [fillcolor="#438dd5", fontcolor="#ffffff", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="1">
+      <TR><TD ALIGN="CENTER"><B>topic-generator</B></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">[Container: Google ADK · Python — Cloud Run]</FONT></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">OrchestratorAgent + 11 sub-agent tuần tự</FONT></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">Sinh module, ghi thẳng vào Convex</FONT></TD></TR>
+    </TABLE>>];
+  }
+
+  google_oauth [fillcolor="#999999", fontcolor="#ffffff", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="1">
+    <TR><TD ALIGN="CENTER"><B>Google Identity</B></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">[External System]</FONT></TD></TR>
+  </TABLE>>];
+  gemini [fillcolor="#999999", fontcolor="#ffffff", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="1">
+    <TR><TD ALIGN="CENTER"><B>Google Gemini API</B></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">[External System]</FONT></TD></TR>
+  </TABLE>>];
+  exa [fillcolor="#999999", fontcolor="#ffffff", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="1">
+    <TR><TD ALIGN="CENTER"><B>Exa AI</B></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">[External System]</FONT></TD></TR>
+  </TABLE>>];
+  serper [fillcolor="#999999", fontcolor="#ffffff", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="1">
+    <TR><TD ALIGN="CENTER"><B>Serper API</B></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">[External System]</FONT></TD></TR>
+  </TABLE>>];
+  qstash [fillcolor="#999999", fontcolor="#ffffff", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="1">
+    <TR><TD ALIGN="CENTER"><B>Upstash QStash</B></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">[External System — hạ tầng]</FONT></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">Hàng đợi tin nhắn + cơ chế thử lại</FONT></TD></TR>
+  </TABLE>>];
+
+  learner -> web [label=" HTTPS — SPA + SSR\n (WebSocket realtime)", penwidth=1.9];
+  web -> google_oauth [label=" OAuth 2.0"];
+  web -> convex [dir=both, label=" HTTPS + WebSocket\n (realtime 2 chiều)", penwidth=1.9, color="#2a6fbb", fontcolor="#2a6fbb"];
+  web -> pg [label=" TLS\n (pg Pool)"];
+  web -> qstash [label=" HTTPS\n (publishJSON)"];
+  qstash -> flask [label=" HTTP POST\n (thử lại 3× / 30s)", color="#9b9b9b", fontcolor="#6b6b6b"];
+  flask -> checker [label=" POST /run\n (ADK Runtime)"];
+  flask -> gen [label=" POST /run\n (ADK Runtime)"];
+  checker -> convex [label=" ConvexClient\n (thông báo bad_topic)", color="#2a6fbb", fontcolor="#2a6fbb"];
+  gen -> convex [label=" ConvexClient — ghi module\n (7 block + embedding)", color="#2a6fbb", fontcolor="#2a6fbb", penwidth=1.7];
+  convex -> gemini [label=" sinh embedding\n 768 chiều"];
+  gen -> gemini [label=" sinh nội dung\n (HTTPS)", style=dashed];
+  gen -> exa [label=" exa_search()\n (HTTPS)", style=dashed];
+  gen -> serper [label=" tìm ảnh\n (HTTPS)", style=dashed];
+
+  { rank=same; learner; }
+  { rank=same; web; google_oauth; }
+  { rank=same; qstash; pg; convex; }
+  { rank=same; flask; gemini; exa; serper; }
+  { rank=same; checker; gen; }
+}

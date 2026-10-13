@@ -1,0 +1,74 @@
+digraph c4_l1 {
+  graph [
+    rankdir=TB, fontname="DejaVu Sans", fontsize=24, labelloc="t", labeljust="c",
+    label="C4 · Cấp 1 — Sơ đồ ngữ cảnh hệ thống (System Context)  ·  WSIC (Why Should I Care)\nAi dùng hệ thống, và hệ thống nói chuyện với những dịch vụ bên ngoài nào",
+    bgcolor="#ffffff", pad=0.5, nodesep=0.55, ranksep=1.0, compound=true, splines=spline, newrank=true
+  ];
+  node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=12, color="#ffffff", penwidth=1.5, margin="0.24,0.16"];
+  edge [fontname="DejaVu Sans", fontsize=10.5, color="#707070", penwidth=1.4, arrowsize=0.75, fontcolor="#4d4d4d"];
+
+  learner [fillcolor="#08427b", fontcolor="#ffffff", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="1">
+    <TR><TD ALIGN="CENTER"><B>Người học / người tò mò</B></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">[Person]</FONT></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">Tìm một chủ đề, đọc module học tập,</FONT></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">lưu · thích · chia sẻ, nhận thông báo realtime</FONT></TD></TR>
+  </TABLE>>];
+
+  ops [fillcolor="#08427b", fontcolor="#ffffff", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="1">
+    <TR><TD ALIGN="CENTER"><B>Vận hành viên</B></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">[Person]</FONT></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">Chạy migration better-auth, seed dữ liệu</FONT></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">(convex/seed.ts), deploy (convex deploy)</FONT></TD></TR>
+  </TABLE>>];
+
+  wsic [fillcolor="#1168bd", fontcolor="#ffffff", fontsize=14, margin="0.4,0.3", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="17"><B>WSIC — Why Should I Care</B></FONT></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">[Software System]</FONT></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="11">Nền tảng học tập: tìm kiếm chủ đề, và khi chủ đề chưa tồn tại</FONT></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="11">thì “brew” ra module học tập hoàn chỉnh bằng pipeline đa tác tử AI</FONT></TD></TR>
+  </TABLE>>];
+
+  google_oauth [fillcolor="#999999", fontcolor="#ffffff", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="1">
+    <TR><TD ALIGN="CENTER"><B>Google Identity</B></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">[External System]</FONT></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">Đăng nhập OAuth 2.0</FONT></TD></TR>
+  </TABLE>>];
+
+  gemini [fillcolor="#999999", fontcolor="#ffffff", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="1">
+    <TR><TD ALIGN="CENTER"><B>Google Gemini API</B></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">[External System]</FONT></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">Sinh nội dung: gemini-2.5-flash, 2.0-flash-lite</FONT></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">Embedding 768 chiều: gemini-embedding-001</FONT></TD></TR>
+  </TABLE>>];
+
+  exa [fillcolor="#999999", fontcolor="#ffffff", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="1">
+    <TR><TD ALIGN="CENTER"><B>Exa AI</B></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">[External System]</FONT></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">Tìm kiếm &amp; trích xuất nguồn web</FONT></TD></TR>
+  </TABLE>>];
+
+  serper [fillcolor="#999999", fontcolor="#ffffff", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="1">
+    <TR><TD ALIGN="CENTER"><B>Serper API</B></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">[External System]</FONT></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">Tìm ảnh cho thumbnail</FONT></TD></TR>
+  </TABLE>>];
+
+  qstash [fillcolor="#999999", fontcolor="#ffffff", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="1">
+    <TR><TD ALIGN="CENTER"><B>Upstash QStash</B></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">[External System — hạ tầng]</FONT></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">Hàng đợi: giao việc sinh nội dung,</FONT></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">thử lại 3 lần (cách 30 giây)</FONT></TD></TR>
+  </TABLE>>];
+
+  learner -> wsic [label="  HTTPS — tìm kiếm chủ đề, đọc module,\n  tương tác (like/save/share), nhận thông báo realtime", penwidth=1.9];
+  ops -> wsic [label="  Chạy migration SQL · seed · deploy", style=dashed];
+  wsic -> google_oauth [label="Xác thực người dùng\n(OAuth 2.0, HTTPS)"];
+  wsic -> gemini [label="Sinh nội dung &amp; sinh vector\n(REST/HTTPS)"];
+  wsic -> exa [label="Nghiên cứu nguồn web\n(REST/HTTPS)"];
+  wsic -> serper [label="Tìm ảnh thumbnail\n(REST/HTTPS)"];
+  wsic -> qstash [label="Đẩy yêu cầu sinh nội dung\n(publish, HTTPS)"];
+  qstash -> wsic [label="Gọi lại webhook khi đến lượt\n(HTTP POST)", style=dashed, color="#9b9b9b", fontcolor="#6b6b6b"];
+
+  { rank=same; learner; ops; }
+  { rank=same; google_oauth; gemini; exa; serper; qstash; }
+}

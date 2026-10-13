@@ -1,0 +1,155 @@
+digraph c4_l3_convex {
+  graph [
+    rankdir=TB, fontname="DejaVu Sans", fontsize=23, labelloc="t", labeljust="c",
+    label="C4 · Cấp 3 — Sơ đồ Component của container “Convex Deployment” (backend chính)\nAi gọi vào (trên), các module hàm bên trong (giữa, gom theo miền nghiệp vụ), và phần vượt ra ngoài ranh giới (dưới)",
+    bgcolor="#ffffff", pad=0.5, nodesep=0.35, ranksep=0.85, compound=true, newrank=true
+  ];
+  node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=11, color="#ffffff", penwidth=0, margin="0.18,0.12"];
+  edge [fontname="DejaVu Sans", fontsize=9.5, color="#707070", penwidth=1.2, arrowsize=0.65, fontcolor="#4d4d4d"];
+
+  subgraph cluster_callers {
+    label="Ai gọi vào Convex — bốn kiểu client, hai kiểu hợp đồng"; labeljust="l"; fontsize=13; fontcolor="#2a6fbb";
+    style="rounded,filled"; fillcolor="#f4f9ff"; color="#438dd5"; penwidth=1.4; margin=14;
+
+    webclient [fillcolor="#85bbf0", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+      <TR><TD ALIGN="LEFT"><B>Web client — convex/react</B></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">hooks/*: useQuery · useMutation · useAction</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">usePaginatedQuery · useConvex (WebSocket)</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">api.* sinh tự động → kiểm tra kiểu lúc build</FONT></TD></TR>
+    </TABLE>>];
+    webserver [fillcolor="#85bbf0", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+      <TR><TD ALIGN="LEFT"><B>Web server — convex/nextjs</B></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">fetchQuery() trong Server Components</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">(generateMetadata cho /topic/[id])</FONT></TD></TR>
+    </TABLE>>];
+    pyagents [fillcolor="#85bbf0", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+      <TR><TD ALIGN="LEFT"><B>Các agent Python — ConvexClient</B></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">agents/topic-generator · topic-checker</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9"><FONT COLOR="#c5221f">gọi bằng TÊN CHUỖI “topics:createTopic”</FONT></FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9"><FONT COLOR="#c5221f">→ không kiểm tra kiểu lúc build</FONT></FONT></TD></TR>
+    </TABLE>>];
+    cli [fillcolor="#85bbf0", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+      <TR><TD ALIGN="LEFT"><B>Vận hành — npx convex dev / deploy</B></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">đồng bộ schema &amp; hàm lên deployment</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">(cũng chạy trong build của Vercel)</FONT></TD></TR>
+    </TABLE>>];
+  }
+
+  subgraph cluster_content {
+    label="Miền nội dung & khám phá"; labeljust="l"; fontsize=12; fontcolor="#b06000";
+    style="rounded,filled"; fillcolor="#fff8ec"; color="#b06000"; penwidth=1.3; margin=12;
+    m_topics [fillcolor="#f5c78a", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+      <TR><TD ALIGN="LEFT"><B>topics.ts</B> — thực thể nội dung trung tâm</TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">query: getTopics (phân trang) · getTrendingTopics</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">  · getTopicBySlug · getTopicById · searchTopics</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">mutation: createTopic · publishTopic · deleteTopic</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">  · triggerTrendingUpdate</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">internal: updateTopicMetrics · updateTrendingStatus</FONT></TD></TR></TABLE>>];
+    m_blocks [fillcolor="#f5c78a", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+      <TR><TD ALIGN="LEFT"><B>blocks.ts</B> — nội dung từng bước</TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">getBlocksByTopic · getBlocksByTopicId</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">createBlock · deleteBlock</FONT></TD></TR></TABLE>>];
+    m_search [fillcolor="#f5c78a", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+      <TR><TD ALIGN="LEFT"><B>search.ts</B> — tìm kiếm toàn văn</TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">simpleSearchTopics → searchIndex “search_topics”</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">(tìm trên title, lọc isPublished + difficulty)</FONT></TD></TR></TABLE>>];
+    m_categories [fillcolor="#f5c78a", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+      <TR><TD ALIGN="LEFT"><B>categories.ts</B> — danh mục</TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">getCategories · getCategoryBySlug</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">createCategory (internal)</FONT></TD></TR></TABLE>>];
+  }
+
+  subgraph cluster_engage {
+    label="Miền tương tác & thông báo"; labeljust="l"; fontsize=12; fontcolor="#137333";
+    style="rounded,filled"; fillcolor="#f3fbf4"; color="#137333"; penwidth=1.3; margin=12;
+    m_users [fillcolor="#9bd6a6", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+      <TR><TD ALIGN="LEFT"><B>users.ts</B> — tương tác người dùng</TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">recordInteraction: view · like · save · share · complete</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">  (chống trùng view 24 giờ; like/save bật-tắt)</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">getUserTopicInteractions · getSavedTopics · getUserTopics</FONT></TD></TR></TABLE>>];
+    m_notifs [fillcolor="#9bd6a6", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+      <TR><TD ALIGN="LEFT"><B>notifications.ts</B> — thông báo realtime</TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">createNotification · getUserNotifications</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">getUnreadNotificationCount · markNotificationAsRead</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">markAllNotificationsAsRead</FONT></TD></TR></TABLE>>];
+    m_constants [fillcolor="#9bd6a6", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+      <TR><TD ALIGN="LEFT"><B>constants.ts</B> — danh mục loại thông báo</TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">initializeNotificationTypes (mutation)</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">getNotificationTypes · getNotificationTypeByKey</FONT></TD></TR></TABLE>>];
+  }
+
+  subgraph cluster_ai {
+    label="Miền AI &amp; vector — chỉ module có thể gọi dịch vụ ngoài"; labeljust="l"; fontsize=12; fontcolor="#8430ce";
+    style="rounded,filled"; fillcolor="#faf5ff"; color="#8430ce"; penwidth=1.3; margin=12;
+    m_emb [fillcolor="#d3b6f2", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+      <TR><TD ALIGN="LEFT"><B>embeddings.ts</B> — tìm kiếm ngữ nghĩa (query · mutation · action)</TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">action: getSimilarTopics · searchSimilarTopicsByTerm → vectorSearch “by_embedding” (768 chiều)</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">query: getTopicEmbedding · getTopicsByEmbeddingIds · internal: …Internal (2 hàm)</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">mutation: createEmbedding · deleteEmbeddingsByTopic · deleteEmbedding</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">hàm nội bộ: generateEmbedding() → gọi Gemini gemini-embedding-001</FONT></TD></TR></TABLE>>];
+  }
+
+  subgraph cluster_platform {
+    label="Nền tảng dữ liệu &amp; vận hành"; labeljust="l"; fontsize=12; fontcolor="#5f6368";
+    style="rounded,filled"; fillcolor="#f7f7f7"; color="#8a8a8a"; penwidth=1.3; margin=12;
+    m_schema [fillcolor="#c9c9c9", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+      <TR><TD ALIGN="LEFT"><B>schema.ts — hợp đồng dữ liệu</B></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">7 validator block + blockContentValidator (union)</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">defineSchema 7 bảng: index · searchIndex · vectorIndex</FONT></TD></TR></TABLE>>];
+    m_crons [fillcolor="#c9c9c9", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+      <TR><TD ALIGN="LEFT"><B>crons.ts</B> — lịch chạy nền</TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">mỗi 1 giờ → internal.topics.updateTrendingStatus</FONT></TD></TR></TABLE>>];
+    m_seed [fillcolor="#c9c9c9", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+      <TR><TD ALIGN="LEFT"><B>seed.ts · types.ts</B></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">seedCategories · seedNotificationTypes</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">initializeDatabase · clearAllData · types.ts: Infer&lt;typeof …&gt;</FONT></TD></TR></TABLE>>];
+    m_gen [fillcolor="#c9c9c9", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+      <TR><TD ALIGN="LEFT"><B>_generated/</B> — Convex sinh tự động</TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">api.d.ts · dataModel.d.ts · server.d.ts</FONT></TD></TR></TABLE>>];
+  }
+
+  gemini [fillcolor="#999999", fontcolor="#ffffff", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+    <TR><TD ALIGN="CENTER"><B>Google Gemini API</B></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">[Hệ thống ngoài]</FONT></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">gemini-embedding-001 → 768 chiều</FONT></TD></TR></TABLE>>];
+  pg [shape=cylinder, fillcolor="#999999", fontcolor="#ffffff", margin="0.26,0.16", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+    <TR><TD ALIGN="CENTER"><B>PostgreSQL (better-auth)</B></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">[Container bên ngoài]</FONT></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">liên kết bằng chuỗi ID — không FK</FONT></TD></TR></TABLE>>];
+  runtime [fillcolor="#999999", fontcolor="#ffffff", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+    <TR><TD ALIGN="CENTER"><B>Convex Cloud Runtime</B></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">[Hạ tầng]</FONT></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">WebSocket realtime · lịch cron</FONT></TD></TR></TABLE>>];
+
+  webclient -> m_topics [label=" getTopics · getTrendingTopics · searchTopics · getTopicById", penwidth=1.5];
+  webclient -> m_blocks [label=" getBlocksByTopic"];
+  webclient -> m_categories [label=" getCategories"];
+  webclient -> m_users [label=" recordInteraction · getSavedTopics · getUserTopics"];
+  webclient -> m_notifs [label=" getUserNotifications · markAllNotificationsAsRead"];
+  webclient -> m_emb [label=" getSimilarTopics ·\n searchSimilarTopicsByTerm", color="#8430ce", fontcolor="#8430ce"];
+  webserver -> m_topics [label=" fetchQuery() SSR"];
+  pyagents -> m_topics [label=" “topics:createTopic”\n “topics:getTopicById”", color="#c5221f", fontcolor="#c5221f"];
+  pyagents -> m_blocks [label=" “blocks:createBlock” ×7", color="#c5221f", fontcolor="#c5221f"];
+  pyagents -> m_emb [label=" “embeddings:createEmbedding”", color="#c5221f", fontcolor="#c5221f"];
+  pyagents -> m_notifs [label=" “notifications:createNotification”\n (topic_generated · bad_topic · lỗi)", color="#c5221f", fontcolor="#c5221f"];
+  pyagents -> m_constants [label=" “getNotificationTypes”", color="#c5221f", fontcolor="#c5221f"];
+  pyagents -> m_categories [label=" “categories:getCategories”", color="#c5221f", fontcolor="#c5221f"];
+  cli -> m_schema [label=" deploy schema\n &amp; functions"];
+  m_crons -> m_topics [label=" gọi internal\n updateTrendingStatus", style=dashed, constraint=false];
+  m_constants -> m_notifs [label=" tra cứu loại\n thông báo", style=dashed, constraint=false];
+  m_emb -> gemini [label=" generateEmbedding()\n HTTPS (action)", color="#2a6fbb", fontcolor="#2a6fbb"];
+  m_users -> pg [label=" userId ↔ user.id\n (chuỗi)", style=dashed, color="#c5221f", fontcolor="#c5221f"];
+  m_notifs -> pg [label=" userId (chuỗi)", style=dashed, color="#c5221f", fontcolor="#c5221f"];
+  runtime -> webclient [label=" đẩy dữ liệu realtime\n (WebSocket)", color="#2a6fbb", fontcolor="#2a6fbb", penwidth=1.6, constraint=false];
+  m_schema -> m_topics [style=dotted, color="#8a8a8a", dir=back, label=" dùng validator", fontcolor="#6b6b6b", constraint=false];
+
+  m_topics -> m_users [style=invis, weight=20];
+  m_users  -> m_emb   [style=invis, weight=20];
+  m_emb    -> m_schema [style=invis, weight=20];
+
+  { rank=same; webclient; webserver; pyagents; cli; }
+  { rank=same; m_topics; m_blocks; m_search; m_categories; }
+  { rank=same; m_users; m_notifs; m_constants; }
+  { rank=same; m_emb; m_schema; m_crons; m_seed; m_gen; }
+  { rank=same; gemini; pg; runtime; }
+}

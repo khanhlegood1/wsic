@@ -107,7 +107,7 @@ Trên trang chủ đề, `SimilarTopics.tsx` dùng `api.embeddings.getSimilarTop
 | 4 | Cloud Run `topic-checker` | `TopicCheckerAgent` trả về `{ status: "VALID" \| "INVALID", reason }`; nếu INVALID thì agent tự tạo thông báo `bad_topic` trong Convex |
 | 5 | Cloud Run `topic-generator` | Chạy `OrchestratorAgent` (11 sub-agent, xem sơ đồ 3) |
 | 6 | `generator_api/app.py` | `extract_model_response()` lấy phần text cuối của model, `parse_json_from_markdown()` bóc JSON khỏi code fence |
-| 7 | `ConvexInserterAgent` | Ghi `topics:createTopic` → `embeddings:createEmbedding` → `blocks:createBlock` ×6 → `notifications:createNotification` (`topic_generated`) |
+| 7 | `ConvexInserterAgent` | Ghi `topics:createTopic` → `embeddings:createEmbedding` → `blocks:createBlock` ×7 → `notifications:createNotification` (`topic_generated`) |
 | 8 | Trình duyệt | Convex đẩy dữ liệu realtime → `hooks/useNotifications.ts` hiện toast, chủ đề mới xuất hiện trong dashboard |
 
 Quy ước lỗi / thử lại:
@@ -146,7 +146,7 @@ Quy ước lỗi / thử lại:
 
 - `topics:createTopic` — `title`, `description` (lấy từ `short_description`), `slug` (`create_slug`), `difficulty`, `estimatedReadTime` (`estimate_read_time`), `isAIGenerated: true`, `generationPrompt`, `sources`, `imageUrl`, `categoryId`, `tagIds` (`process_tags`), `createdBy`, và `metadata { wordCount, readingLevel, estimatedTime, exerciseCount }`.
 - `embeddings:createEmbedding` — vector 768 chiều sinh từ **toàn văn `research_brief`**, `contentType: "research_brief"`.
-- `blocks:createBlock` — 6 block theo thứ tự: `research_brief` (information) → `quiz` (activity) → `research_deep` → `reorder` → `real_world_impact` → `final_quiz` → `summary` (flash cards).
+- `blocks:createBlock` — 7 block theo thứ tự: `research_brief` (information) → `quiz` (activity) → `research_deep` → `reorder` → `real_world_impact` → `final_quiz` → `summary` (flash cards).
 - `notifications:createNotification` — thông báo `topic_generated` (thành công) hoặc thông báo lỗi; agent kiểm duyệt tạo thông báo `bad_topic`.
 
 `agents/topic-checker/agent.py` chỉ có một `TopicCheckerAgent` (gemini-2.5-flash) với `output_schema=TopicValidationOutput{ status, reason }` và công cụ `create_bad_topic_notification()`.

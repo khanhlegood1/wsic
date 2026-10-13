@@ -1,0 +1,151 @@
+digraph c4_l3_web {
+  graph [
+    rankdir=TB, fontname="DejaVu Sans", fontsize=23, labelloc="t", labeljust="c",
+    label="C4 · Cấp 3 — Sơ đồ Component của container “Ứng dụng Web” (Next.js 16, Vercel)\nCác thành phần bên trong và cách chúng phối hợp; các khối xám là hệ thống/container bên ngoài",
+    bgcolor="#ffffff", pad=0.5, nodesep=0.4, ranksep=0.75, compound=true, splines=spline, newrank=true
+  ];
+  node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=11, color="#ffffff", penwidth=0, margin="0.2,0.13"];
+  edge [fontname="DejaVu Sans", fontsize=10, color="#707070", penwidth=1.3, arrowsize=0.7, fontcolor="#4d4d4d"];
+
+  learner [fillcolor="#08427b", fontcolor="#ffffff", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="1">
+    <TR><TD ALIGN="CENTER"><B>Người học / người tò mò</B></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">[Person]</FONT></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">Dùng trên trình duyệt</FONT></TD></TR>
+  </TABLE>>];
+
+  subgraph cluster_web {
+    label="[Container: Ứng dụng Web — Next.js 16 App Router]"; labeljust="l"; fontsize=15; fontcolor="#444444";
+    style="rounded,dashed"; color="#8a8a8a"; penwidth=1.6; margin=18; bgcolor="#fbfbfb";
+
+    proxy [fillcolor="#85bbf0", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="1">
+      <TR><TD ALIGN="CENTER"><B>proxy.ts</B></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">[Component]</FONT></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">Chặn trước khi vào app; matcher</FONT></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">/user/* và /topic/*</FONT></TD></TR>
+    </TABLE>>];
+
+    rsc [fillcolor="#85bbf0", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="1">
+      <TR><TD ALIGN="CENTER"><B>Route máy chủ (Server Components / pages)</B></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">[Component]</FONT></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">app/**/page.tsx, layout.tsx</FONT></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">auth.api.getSession() · fetchQuery()</FONT></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">generateMetadata() cho SEO/og</FONT></TD></TR>
+    </TABLE>>];
+
+    authh [fillcolor="#85bbf0", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="1">
+      <TR><TD ALIGN="CENTER"><B>Auth Route Handler</B></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">[Component]</FONT></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">app/api/auth/[...all]/route.ts</FONT></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">toNextJsHandler(auth)</FONT></TD></TR>
+    </TABLE>>];
+
+    queueh [fillcolor="#85bbf0", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="1">
+      <TR><TD ALIGN="CENTER"><B>Queue Request Handler</B></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">[Component]</FONT></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">/api/queue-topic-request</FONT></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">QStash.publishJSON()</FONT></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10"><FONT COLOR="#c5221f">⚠ chưa kiểm tra session</FONT></FONT></TD></TR>
+    </TABLE>>];
+
+    healthh [fillcolor="#85bbf0", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="1">
+      <TR><TD ALIGN="CENTER"><B>Health Diagnostics Handler</B></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">[Component]</FONT></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">/api/health/auth</FONT></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">Boolean env + kiểm tra PostgreSQL</FONT></TD></TR>
+    </TABLE>>];
+
+    libauth [fillcolor="#85bbf0", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="1">
+      <TR><TD ALIGN="CENTER"><B>Thư viện xác thực</B></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">[Component]</FONT></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">lib/auth.ts (betterAuth + plugin</FONT></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">anonymous) · lib/db-config.ts (pg Pool)</FONT></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">lib/auth-client.ts (createAuthClient,</FONT></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">useSession, signIn, signOut)</FONT></TD></TR>
+    </TABLE>>];
+
+    pages [fillcolor="#85bbf0", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="1">
+      <TR><TD ALIGN="CENTER"><B>Trang &amp; khối nội dung (client components)</B></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">[Component]</FONT></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">components/pages/*: Home, SearchResults,</FONT></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">Topic, Explore, Category, Saved, Profile</FONT></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">components/content/*: Block, MultiQuiz,</FONT></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">Reorder, Summary, SimilarTopics, TopicGrid</FONT></TD></TR>
+    </TABLE>>];
+
+    shell [fillcolor="#85bbf0", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="1">
+      <TR><TD ALIGN="CENTER"><B>Khung trang &amp; điều hướng</B></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">[Component]</FONT></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">TopBar · Footer · Notification</FONT></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">NavigationSidebar · MobileBottomNavigation</FONT></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">ThemeToggle · share-dialog · Toaster</FONT></TD></TR>
+    </TABLE>>];
+
+    hooks [fillcolor="#85bbf0", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="1">
+      <TR><TD ALIGN="CENTER"><B>Hooks dữ liệu</B></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">[Component]</FONT></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">useTopics · useTopic · useTrendingTopics</FONT></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">useUserTopics · useTopicInteractions</FONT></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">useNotifications · useTopBarVisibility</FONT></TD></TR>
+    </TABLE>>];
+
+    provs [fillcolor="#85bbf0", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="1">
+      <TR><TD ALIGN="CENTER"><B>Providers &amp; hằng số dùng chung</B></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">[Component]</FONT></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">ConvexClientProvider · QueryClientProvider</FONT></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">ThemeProvider · constants/common.ts</FONT></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">lib/utils · lib/format · lib/share</FONT></TD></TR>
+    </TABLE>>];
+  }
+
+  vercel [fillcolor="#999999", fontcolor="#ffffff", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="1">
+    <TR><TD ALIGN="CENTER"><B>Vercel</B></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">[Hạ tầng — host container]</FONT></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">build: convex deploy + next build</FONT></TD></TR>
+  </TABLE>>];
+  convexplat [fillcolor="#999999", fontcolor="#ffffff", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="1">
+    <TR><TD ALIGN="CENTER"><B>Convex Platform</B></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">[Hệ thống ngoài — backend chính]</FONT></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">Realtime WebSocket · queries · actions</FONT></TD></TR>
+  </TABLE>>];
+  pg [shape=cylinder, fillcolor="#999999", fontcolor="#ffffff", margin="0.28,0.16", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="1">
+    <TR><TD ALIGN="CENTER"><B>PostgreSQL</B></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">[Container ngoài]</FONT></TD></TR>
+  </TABLE>>];
+  qstash [fillcolor="#999999", fontcolor="#ffffff", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="1">
+    <TR><TD ALIGN="CENTER"><B>Upstash QStash</B></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">[Hệ thống ngoài]</FONT></TD></TR>
+  </TABLE>>];
+  google [fillcolor="#999999", fontcolor="#ffffff", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="1">
+    <TR><TD ALIGN="CENTER"><B>Google Identity</B></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">[Hệ thống ngoài]</FONT></TD></TR>
+  </TABLE>>];
+
+  learner -> proxy [label=" HTTPS — mọi request tới /user/*, /topic/*", penwidth=1.8];
+  learner -> rsc [label=" HTTPS — trang công khai\n / và /login"];
+  proxy -> authh [label=" betterFetch(\"/api/auth/get-session\")\n (chuyển tiếp cookie)", style=dashed];
+  proxy -> learner [label=" redirect → /login?redirect_url=…", style=dashed, color="#c5221f", fontcolor="#c5221f"];
+  rsc -> libauth [label=" auth.api.getSession()"];
+  authh -> libauth [label=" ủy quyền\n toàn bộ endpoint"];
+  libauth -> pg [label=" TLS — đọc/ghi\n user · session · account"];
+  libauth -> google [label=" OAuth 2.0 — trao đổi token"];
+  rsc -> convexplat [label=" fetchQuery() (SSR, HTTPS)"];
+  learner -> provs [label=" tương tác UI"];
+  provs -> pages [label=" cung cấp context"];
+  pages -> hooks [label=" gọi hook"];
+  hooks -> provs [label=" useQuery / useMutation / useAction"];
+  hooks -> authh [label=" useSession()\n (đọc phiên)"];
+  shell -> hooks [label=" useNotifications() — toast realtime"];
+  provs -> convexplat [dir=both, label=" WebSocket — realtime 2 chiều\n (query + đẩy dữ liệu mới)", penwidth=1.8, color="#2a6fbb", fontcolor="#2a6fbb"];
+  pages -> queueh [label=" fetch POST\n “Brew this topic”"];
+  queueh -> qstash [label=" publishJSON() — HTTPS"];
+  healthh -> pg [label=" select 1 + information_schema"];
+  vercel -> rsc [label=" host &amp; build", style=dotted, color="#8a8a8a", fontcolor="#6b6b6b"];
+
+  { rank=same; learner; }
+  { rank=same; proxy; rsc; authh; }
+  { rank=same; libauth; google; pg; }
+  { rank=same; healthh; queueh; }
+  { rank=same; pages; shell; }
+  { rank=same; provs; qstash; convexplat; }
+  { rank=same; hooks; vercel; }
+}

@@ -1,0 +1,134 @@
+digraph c4_l3_agents {
+  graph [
+    rankdir=TB, fontname="DejaVu Sans", fontsize=23, labelloc="t", labeljust="c",
+    label="C4 · Cấp 3 — Sơ đồ Component của các container AI (Google ADK trên Cloud Run)\nBên trái: topic-checker · Bên phải: topic-generator (OrchestratorAgent + 11 sub-agent tuần tự)\nChi tiết prompt & luồng dữ liệu từng agent: xem ../03-multi-agent.svg",
+    bgcolor="#ffffff", pad=0.5, nodesep=0.45, ranksep=0.5, compound=true, splines=spline, newrank=true
+  ];
+  node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=11, color="#ffffff", penwidth=0, margin="0.2,0.12"];
+  edge [fontname="DejaVu Sans", fontsize=10, color="#707070", penwidth=1.3, arrowsize=0.7, fontcolor="#4d4d4d"];
+
+  flask [fillcolor="#438dd5", fontcolor="#ffffff", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="1">
+    <TR><TD ALIGN="CENTER"><B>generator_api — container điều phối (Render)</B></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">[Container: Python · Flask · Gunicorn]</FONT></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">POST /check-topic · POST /generate-topic · DELETE session</FONT></TD></TR>
+  </TABLE>>];
+
+  subgraph cluster_checker {
+    label="[Container: topic-checker — Cloud Run]"; labeljust="l"; fontsize=14; fontcolor="#444444";
+    style="rounded,dashed"; color="#8a8a8a"; penwidth=1.6; margin=16; bgcolor="#fbfbfb";
+
+    adk_runtime_c [fillcolor="#85bbf0", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="1">
+      <TR><TD ALIGN="CENTER"><B>ADK Runtime API</B></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">[Component — khung chạy của Google ADK]</FONT></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">Tạo/xoá session, POST /run</FONT></TD></TR>
+    </TABLE>>];
+    checker_agent [fillcolor="#85bbf0", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="1">
+      <TR><TD ALIGN="CENTER"><B>TopicCheckerAgent</B></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">[Component: LlmAgent — gemini-2.5-flash]</FONT></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">Trả JSON: status VALID/INVALID + reason</FONT></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">tool: create_bad_topic_notification()</FONT></TD></TR>
+    </TABLE>>];
+  }
+
+  subgraph cluster_gen {
+    label="[Container: topic-generator — Cloud Run]"; labeljust="l"; fontsize=14; fontcolor="#444444";
+    style="rounded,dashed"; color="#8a8a8a"; penwidth=1.6; margin=16; bgcolor="#fbfbfb";
+
+    adk_runtime_g [fillcolor="#85bbf0", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="1">
+      <TR><TD ALIGN="CENTER"><B>ADK Runtime API</B></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">[Component — khung chạy của Google ADK]</FONT></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">Tạo/xoá session, POST /run (streaming=false)</FONT></TD></TR>
+    </TABLE>>];
+
+    orch [fillcolor="#85bbf0", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="1">
+      <TR><TD ALIGN="CENTER"><B>OrchestratorAgent — SequentialAgent</B></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">[Component]</FONT></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">Điều phối 11 sub-agent tuần tự, truyền dữ liệu</FONT></TD></TR>
+      <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">qua state dùng chung (output_key)</FONT></TD></TR>
+    </TABLE>>];
+
+    a1 [fillcolor="#a9d0f5", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+      <TR><TD ALIGN="LEFT"><B>1 · ResearchAgentBrief</B>&#160;&#160;<FONT POINT-SIZE="9" COLOR="#a30000">gemini-2.5-flash</FONT>&#160;&#160;· tool: exa_search()</TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9" COLOR="#5f6368">output_key: research_brief_output</FONT></TD></TR></TABLE>>];
+    a2 [fillcolor="#a9d0f5", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+      <TR><TD ALIGN="LEFT"><B>2 · QuizAgent</B>&#160;&#160;<FONT POINT-SIZE="9" COLOR="#8430ce">gemini-2.0-flash-lite</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9" COLOR="#5f6368">output_schema: QuizAgentOutput (3 câu) · output_key: quiz_output</FONT></TD></TR></TABLE>>];
+    a3 [fillcolor="#a9d0f5", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+      <TR><TD ALIGN="LEFT"><B>3 · ResearchAgentDeep</B>&#160;&#160;<FONT POINT-SIZE="9" COLOR="#a30000">gemini-2.5-flash</FONT>&#160;&#160;· tool: exa_search()</TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9" COLOR="#5f6368">output_key: research_deep_output</FONT></TD></TR></TABLE>>];
+    a4 [fillcolor="#a9d0f5", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+      <TR><TD ALIGN="LEFT"><B>4 · ReorderAgent</B>&#160;&#160;<FONT POINT-SIZE="9" COLOR="#8430ce">gemini-2.0-flash-lite</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9" COLOR="#5f6368">output_schema: ReorderAgentOutput · output_key: reorder_output</FONT></TD></TR></TABLE>>];
+    a5 [fillcolor="#a9d0f5", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+      <TR><TD ALIGN="LEFT"><B>5 · RealWorldImpactAgent</B>&#160;&#160;<FONT POINT-SIZE="9" COLOR="#a30000">gemini-2.5-flash</FONT>&#160;&#160;· tool: exa_search()</TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9" COLOR="#5f6368">output_key: impact_output · sinh source_urls</FONT></TD></TR></TABLE>>];
+    a6 [fillcolor="#a9d0f5", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+      <TR><TD ALIGN="LEFT"><B>6 · FinalQuizAgent</B>&#160;&#160;<FONT POINT-SIZE="9" COLOR="#8430ce">gemini-2.0-flash-lite</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9" COLOR="#5f6368">output_schema: FinalQuizAgentOutput · output_key: final_quiz_output</FONT></TD></TR></TABLE>>];
+    a7 [fillcolor="#a9d0f5", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+      <TR><TD ALIGN="LEFT"><B>7 · SummaryAgent</B>&#160;&#160;<FONT POINT-SIZE="9" COLOR="#8430ce">gemini-2.0-flash-lite</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9" COLOR="#5f6368">output_schema: SummaryAgentOutput (flash cards) · output_key: summary_output</FONT></TD></TR></TABLE>>];
+    a8 [fillcolor="#a9d0f5", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+      <TR><TD ALIGN="LEFT"><B>8 · CategoryTagsDescriptionAgent</B>&#160;&#160;<FONT POINT-SIZE="9" COLOR="#a30000">2.5-flash</FONT>&#160;&#160;· tool: get_categories_from_convex()</TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9" COLOR="#5f6368">output_key: category_tags_description_output</FONT></TD></TR></TABLE>>];
+    a9 [fillcolor="#a9d0f5", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+      <TR><TD ALIGN="LEFT"><B>9 · ThumbnailGeneratorAgent</B>&#160;&#160;<FONT POINT-SIZE="9" COLOR="#a30000">2.5-flash</FONT>&#160;&#160;· tool: serper_image_search()</TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9" COLOR="#5f6368">output_key: thumbnail_output</FONT></TD></TR></TABLE>>];
+    a10 [fillcolor="#a9d0f5", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+      <TR><TD ALIGN="LEFT"><B>10 · AssemblerAgent</B>&#160;&#160;<FONT POINT-SIZE="9" COLOR="#8430ce">gemini-2.0-flash-lite</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9" COLOR="#5f6368">output_schema: FinalAssemblyOutput · output_key: final_module</FONT></TD></TR></TABLE>>];
+    a11 [fillcolor="#a9d0f5", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+      <TR><TD ALIGN="LEFT"><B>11 · ConvexInserterAgent</B>&#160;&#160;<FONT POINT-SIZE="9" COLOR="#a30000">gemini-2.5-flash</FONT>&#160;&#160;· tool: insert_topic_to_convex()</TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9" COLOR="#5f6368">output_key: insertion_result</FONT></TD></TR></TABLE>>];
+  }
+
+  gemini [fillcolor="#999999", fontcolor="#ffffff", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="1">
+    <TR><TD ALIGN="CENTER"><B>Google Gemini API</B></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">[Hệ thống ngoài]</FONT></TD></TR>
+  </TABLE>>];
+  exa [fillcolor="#999999", fontcolor="#ffffff", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="1">
+    <TR><TD ALIGN="CENTER"><B>Exa AI</B></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">[Hệ thống ngoài]</FONT></TD></TR>
+  </TABLE>>];
+  serper [fillcolor="#999999", fontcolor="#ffffff", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="1">
+    <TR><TD ALIGN="CENTER"><B>Serper API</B></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">[Hệ thống ngoài]</FONT></TD></TR>
+  </TABLE>>];
+  convex [fillcolor="#999999", fontcolor="#ffffff", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="1">
+    <TR><TD ALIGN="CENTER"><B>Convex Platform</B></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">[Container ngoài — backend chính]</FONT></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10">ConvexClient (Python) — HTTPS</FONT></TD></TR>
+  </TABLE>>];
+  qstash [fillcolor="#999999", fontcolor="#ffffff", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="1">
+    <TR><TD ALIGN="CENTER"><B>Upstash QStash</B></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="9">[Hệ thống ngoài]</FONT></TD></TR>
+  </TABLE>>];
+  tools_note [shape=note, fillcolor="#fff8e1", color="#b08900", fontcolor="#1b1b1b", fontsize=10.5, margin="0.2,0.14", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="1">
+    <TR><TD ALIGN="LEFT"><B>Công cụ (ADK tools) &amp; nhà cung cấp</B></TD></TR>
+    <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">exa_search() → Exa AI (agent 1, 3, 5)</FONT></TD></TR>
+    <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">serper_image_search() → Serper API (agent 9)</FONT></TD></TR>
+    <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">get_categories_from_convex() → Convex (agent 8)</FONT></TD></TR>
+    <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">create_bad_topic_notification() → Convex (checker)</FONT></TD></TR>
+    <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">insert_topic_to_convex() → Convex (agent 11)</FONT></TD></TR>
+    <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">Sinh nội dung: Gemini 2.5-flash / 2.0-flash-lite</FONT></TD></TR>
+  </TABLE>>];
+
+  qstash -> flask [label=" HTTP POST /generate-topic", color="#9b9b9b", fontcolor="#6b6b6b"];
+  flask -> adk_runtime_c [label=" POST /run"];
+  flask -> adk_runtime_g [label=" POST /run"];
+  adk_runtime_c -> checker_agent [label=" chạy"];
+  adk_runtime_g -> orch [label=" chạy"];
+
+  orch -> a1 [label=" bước 1..11 chạy tuần tự;\n mỗi mũi tên dưới = bàn giao state qua output_key"];
+  a1 -> a2 -> a3 -> a4 -> a5 -> a6 -> a7 -> a8 -> a9 -> a10 -> a11 [penwidth=1.5, color="#4a8fd4"];
+
+  checker_agent -> convex [label=" tạo thông báo “bad_topic”\n (chỉ khi chủ đề INVALID)", color="#2a6fbb", fontcolor="#2a6fbb", style=dashed];
+  a11 -> convex [label=" ghi module: createTopic · createBlock ×7\n createEmbedding · createNotification", color="#2a6fbb", fontcolor="#2a6fbb", penwidth=1.8];
+  tools_note -> a1 [style=dotted, color="#b08900", dir=none];
+  gemini -> orch [label=" HTTPS — sinh nội dung", style=dotted, color="#8a8a8a", fontcolor="#6b6b6b", dir=none];
+
+  { rank=same; qstash; }
+  { rank=same; flask; gemini; exa; serper; }
+  { rank=same; adk_runtime_c; adk_runtime_g; }
+  { rank=same; checker_agent; orch; tools_note; }
+}
