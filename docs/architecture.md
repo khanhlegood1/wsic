@@ -2,6 +2,8 @@
 
 > Tài liệu này mô tả kiến trúc thực tế của mã nguồn tại thời điểm viết, **được đối chiếu trực tiếp với code** (không sao chép lại các mô tả cũ trong `README.md`/`docs/` khi chúng đã lệch).
 > Toàn bộ sơ đồ nằm trong [`docs/diagrams/`](./diagrams/) (PNG + SVG + mã nguồn Graphviz).
+> Bộ sơ đồ theo **mô hình C4** (ngữ cảnh → container → component → mã nguồn): [`c4-architecture.md`](./c4-architecture.md).
+> Bản phân tích thiết kế, đánh giá và lộ trình: [`whitepaper.md`](./whitepaper.md).
 
 ## 1. Tóm tắt trong 30 giây
 
@@ -14,7 +16,7 @@ WSIC là một ứng dụng học tập: người dùng tìm một chủ đề, 
 | Dữ liệu chính | **Convex** (BaaS, realtime, vector search 768 chiều) | `topics`, `categories`, `blocks`, `embeddings`, `userTopicInteractions`, `notifications` |
 | Dữ liệu xác thực | **PostgreSQL** (thư viện `pg`) | Bảng `user`, `session`, `account`, `verification` của better-auth |
 | Hàng đợi | **Upstash QStash** | Giao việc sinh nội dung, tự động thử lại 3 lần, cách nhau 30 giây |
-| Điều phối sinh nội dung | **Render** — `generator_api` (Flask + Gunicorn) | Kiểm tra chủ đề, gọi các agent, parse JSON, chống trùng |
+| Điều phối sinh nội dung | **Render** — `generator_api` (Flask + Gunicorn) | Kiểm tra chủ đề, gọi các agent, parse JSON (chống trùng: **chưa có** — xem TODO ở `app.py` và §9.2 whitepaper) |
 | Tác tử AI | **Google Cloud Run** — ADK (`agents/topic-checker`, `agents/topic-generator`) | 1 agent kiểm duyệt + 11 sub-agent sinh nội dung |
 | Dịch vụ AI ngoài | Gemini (`2.5-flash`, `2.0-flash-lite`, `gemini-embedding-001`), Exa AI, Serper | Sinh nội dung, embedding, nghiên cứu web, tìm ảnh thumbnail |
 | Triển khai | Vercel (web) + Render (worker Flask) + Cloud Run (agent) + Convex Cloud | `vercel.json` chạy `convex deploy` trong mỗi lần build |
@@ -107,7 +109,7 @@ Trên trang chủ đề, `SimilarTopics.tsx` dùng `api.embeddings.getSimilarTop
 | 4 | Cloud Run `topic-checker` | `TopicCheckerAgent` trả về `{ status: "VALID" \| "INVALID", reason }`; nếu INVALID thì agent tự tạo thông báo `bad_topic` trong Convex |
 | 5 | Cloud Run `topic-generator` | Chạy `OrchestratorAgent` (11 sub-agent, xem sơ đồ 3) |
 | 6 | `generator_api/app.py` | `extract_model_response()` lấy phần text cuối của model, `parse_json_from_markdown()` bóc JSON khỏi code fence |
-| 7 | `ConvexInserterAgent` | Ghi `topics:createTopic` → `embeddings:createEmbedding` → `blocks:createBlock` ×6 → `notifications:createNotification` (`topic_generated`) |
+| 7 | `ConvexInserterAgent` | Ghi `topics:createTopic` → `embeddings:createEmbedding` → `blocks:createBlock` ×7 → `notifications:createNotification` (`topic_generated`) |
 | 8 | Trình duyệt | Convex đẩy dữ liệu realtime → `hooks/useNotifications.ts` hiện toast, chủ đề mới xuất hiện trong dashboard |
 
 Quy ước lỗi / thử lại:
@@ -146,7 +148,7 @@ Quy ước lỗi / thử lại:
 
 - `topics:createTopic` — `title`, `description` (lấy từ `short_description`), `slug` (`create_slug`), `difficulty`, `estimatedReadTime` (`estimate_read_time`), `isAIGenerated: true`, `generationPrompt`, `sources`, `imageUrl`, `categoryId`, `tagIds` (`process_tags`), `createdBy`, và `metadata { wordCount, readingLevel, estimatedTime, exerciseCount }`.
 - `embeddings:createEmbedding` — vector 768 chiều sinh từ **toàn văn `research_brief`**, `contentType: "research_brief"`.
-- `blocks:createBlock` — 6 block theo thứ tự: `research_brief` (information) → `quiz` (activity) → `research_deep` → `reorder` → `real_world_impact` → `final_quiz` → `summary` (flash cards).
+- `blocks:createBlock` — 7 block theo thứ tự: `research_brief` (information) → `quiz` (activity) → `research_deep` → `reorder` → `real_world_impact` → `final_quiz` → `summary` (flash cards).
 - `notifications:createNotification` — thông báo `topic_generated` (thành công) hoặc thông báo lỗi; agent kiểm duyệt tạo thông báo `bad_topic`.
 
 `agents/topic-checker/agent.py` chỉ có một `TopicCheckerAgent` (gemini-2.5-flash) với `output_schema=TopicValidationOutput{ status, reason }` và công cụ `create_bad_topic_notification()`.

@@ -1,0 +1,152 @@
+digraph c4_l4 {
+  graph [
+    rankdir=LR, fontname="DejaVu Sans", fontsize=23, labelloc="t", labeljust="c",
+    label="C4 · Cấp 4 — Sơ đồ mã nguồn (Code) · bản đồ tệp & ký hiệu chính của WSIC\nCột trái → phải: ứng dụng web → backend Convex → Python (điều phối + tác tử) → cấu hình & tài liệu",
+    bgcolor="#ffffff", pad=0.5, nodesep=0.35, ranksep=0.9, compound=true, newrank=true
+  ];
+  node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=10, color="#ffffff", penwidth=0, margin="0.16,0.1"];
+  edge [fontname="DejaVu Sans", fontsize=9.5, color="#707070", penwidth=1.2, arrowsize=0.65, fontcolor="#4d4d4d"];
+
+  subgraph cluster_web {
+    label="Ứng dụng web — Next.js 16 (TypeScript)"; labeljust="l"; fontsize=14; fontcolor="#444444";
+    style="rounded,filled"; fillcolor="#f4f9ff"; color="#438dd5"; penwidth=1.6; margin=14;
+
+    f_app [fillcolor="#85bbf0", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+      <TR><TD ALIGN="LEFT"><B>app/</B> — định tuyến &amp; trang (App Router)</TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">layout.tsx · page.tsx · error.tsx · not-found.tsx</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">login/{layout,page}.tsx · user/{dashboard,search,explore,</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">saved,profile,notes,communities}/ · topic/[id]/</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">api/auth/[...all]/route.ts · api/queue-topic-request/route.ts</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">api/health/auth/route.ts</FONT></TD></TR></TABLE>>];
+    f_proxy [fillcolor="#85bbf0", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+      <TR><TD ALIGN="LEFT"><B>proxy.ts</B> (gốc dự án)</TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">proxy(request) · config.matcher</FONT></TD></TR></TABLE>>];
+    f_components [fillcolor="#85bbf0", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+      <TR><TD ALIGN="LEFT"><B>components/</B> — UI</TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">pages/: Home · SearchResults · Topic · Explore</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">  · Category · Saved · Profile</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">content/: Block · MultiQuiz · Reorder · Summary</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">  · SimilarTopics · SuggestedTopics · TrendingTopics</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">  · TopicGrid · CategoryCard · SelectHolder</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">layout/: TopBar · Footer · Notification · ThemeToggle</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">navigation/: NavigationSidebar · MobileBottomNavigation</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">features/: TopicSearch · SubscriptionCard</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">auth/: GoogleSignInButton · AnonymousHelpDialog</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">ui/: button · input · dialog · avatar · select … (shadcn)</FONT></TD></TR></TABLE>>];
+    f_hooks [fillcolor="#85bbf0", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+      <TR><TD ALIGN="LEFT"><B>hooks/</B> — cầu nối dữ liệu</TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">useTopics · useTopic · useTrendingTopics · useUserTopics</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">useTopicInteractions · useNotifications · useTopBarVisibility</FONT></TD></TR></TABLE>>];
+    f_lib [fillcolor="#85bbf0", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+      <TR><TD ALIGN="LEFT"><B>lib/ · providers/ · constants/ · interfaces/</B></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">lib/auth.ts (betterAuth, anonymous, google)</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">lib/auth-client.ts (createAuthClient, useSession)</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">lib/db-config.ts (pgConfig) · utils.ts · format.ts · share.ts</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">providers/: ConvexClientProvider · QueryClientProvider · ThemeProvider</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">constants/common.ts · interfaces/NavigationItem.ts</FONT></TD></TR></TABLE>>];
+  }
+
+  subgraph cluster_convex {
+    label="Backend chính — convex/ (TypeScript)"; labeljust="l"; fontsize=14; fontcolor="#444444";
+    style="rounded,filled"; fillcolor="#fffaf0"; color="#b06000"; penwidth=1.6; margin=14;
+
+    c_schema [fillcolor="#f5c78a", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+      <TR><TD ALIGN="LEFT"><B>schema.ts</B> — hợp đồng dữ liệu dùng chung</TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">7 validator nội dung block: researchBriefValidator,</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">researchDeepValidator, realWorldImpactValidator,</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">summaryValidator, quizValidator, reorderValidator, finalQuizValidator</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">blockContentValidator (union) · defineSchema (7 bảng + index)</FONT></TD></TR></TABLE>>];
+    c_topics [fillcolor="#f5c78a", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+      <TR><TD ALIGN="LEFT"><B>topics.ts</B> (791 dòng) — thực thể nội dung</TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">queries: getTrendingTopics · searchTopics · getTopicBySlug · getTopics</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">mutations: createTopic · updateTopicMetrics (internal) · publishTopic</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">  · deleteTopic · triggerTrendingUpdate</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">internal: updateTrendingStatus (tính điểm trending)</FONT></TD></TR></TABLE>>];
+    c_search [fillcolor="#f5c78a", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+      <TR><TD ALIGN="LEFT"><B>search.ts</B> · <B>embeddings.ts</B> — tìm kiếm</TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">simpleSearchTopics (searchIndex “search_topics”)</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">getSimilarTopics · searchSimilarTopicsByTerm (action)</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">getTopicEmbedding(Internal) · getTopicsByEmbeddingIds(Internal)</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">createEmbedding · deleteEmbedding(sByTopic) · generateEmbedding()</FONT></TD></TR></TABLE>>];
+    c_other [fillcolor="#f5c78a", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+      <TR><TD ALIGN="LEFT"><B>blocks · categories · users · notifications · constants · seed · crons · types</B></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">blocks.ts: getBlocksByTopic(id) · createBlock · deleteBlock</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">categories.ts: getCategories · getCategoryBySlug · createCategory</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">users.ts: recordInteraction · getSavedTopics · getUserTopics</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">notifications.ts: createNotification · getUserNotifications</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">constants.ts: initializeNotificationTypes · getNotificationTypes</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">seed.ts: seedCategories · seedNotificationTypes · initializeDatabase</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">crons.ts: “update trending status” mỗi 1 giờ</FONT></TD></TR></TABLE>>];
+  }
+
+  subgraph cluster_py {
+    label="Python — điều phối &amp; tác tử"; labeljust="l"; fontsize=14; fontcolor="#444444";
+    style="rounded,filled"; fillcolor="#f3faf3"; color="#137333"; penwidth=1.6; margin=14;
+
+    p_flask [fillcolor="#9bd6a6", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+      <TR><TD ALIGN="LEFT"><B>generator_api/app.py</B> (309 dòng · Flask)</TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">routes: /ok · /check-topic · /generate-topic</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">check_topic_validity() · create_session() · run_service()</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">delete_session() · extract_model_response()</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">parse_json_from_markdown() → (json, should_retry)</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">ConvexClient(CONVEX_URL) khởi tạo nhưng KHÔNG dùng</FONT></TD></TR></TABLE>>];
+    p_checker [fillcolor="#9bd6a6", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+      <TR><TD ALIGN="LEFT"><B>agents/topic-checker/agent.py</B> (158 dòng)</TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">class TopicValidationOutput(BaseModel)</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">topic_checker_agent: LlmAgent (gemini-2.5-flash, root_agent)</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">create_bad_topic_notification()</FONT></TD></TR></TABLE>>];
+    p_gen [fillcolor="#9bd6a6", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+      <TR><TD ALIGN="LEFT"><B>agents/topic-generator/agent.py</B> (1337 dòng)</TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">Pydantic: BaseAgentOutput · ResearchData · QuizData · ReorderData</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">  · RealWorldImpactData · FlashCard/SummaryData · ThumbnailData</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">  · CategoryTagsDescriptionData · FinalAssemblyOutput</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">tools: exa_search · serper_image_search · generate_embedding</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">  · get_categories_from_convex · insert_topic_to_convex</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">helpers: create_slug · estimate_read_time · validate_category_id · process_tags</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">11 LlmAgent: ResearchBrief · Quiz · ResearchDeep · Reorder ·</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">  RealWorldImpact · FinalQuiz · Summary · CategoryTagsDescription ·</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">  ThumbnailGenerator · Assembler · ConvexInserter</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">orchestrator_agent: SequentialAgent (root_agent)</FONT></TD></TR></TABLE>>];
+  }
+
+  subgraph cluster_meta {
+    label="Cấu hình · dữ liệu · tài liệu"; labeljust="l"; fontsize=14; fontcolor="#444444";
+    style="rounded,filled"; fillcolor="#fbf7ff"; color="#8430ce"; penwidth=1.6; margin=14;
+
+    m_cfg [fillcolor="#d3b6f2", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+      <TR><TD ALIGN="LEFT"><B>Cấu hình triển khai</B></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">package.json · vercel.json (convex deploy + next build)</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">tsconfig.json · next.config.ts · eslint.config.mjs</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">generator_api/requirements.txt · agents/*/requirements.txt</FONT></TD></TR></TABLE>>];
+    m_db [fillcolor="#d3b6f2", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+      <TR><TD ALIGN="LEFT"><B>better-auth_migrations/</B></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">2025-08-16T08-17-13.295Z.sql (bảng cơ bản)</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">2026-10-07-anonymous-plugin.sql (isAnonymous)</FONT></TD></TR></TABLE>>];
+    m_docs [fillcolor="#d3b6f2", fontcolor="#1b1b1b", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+      <TR><TD ALIGN="LEFT"><B>Tài liệu &amp; quy ước</B></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">docs/: whitepaper.md · architecture.md · c4-architecture.md</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">docs/diagrams/: 7 sơ đồ hệ thống + c4/ (6 sơ đồ C4)</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">.kiro/steering/agents_rules.md · convex_rules.md · todo.md</FONT></TD></TR></TABLE>>];
+  }
+
+  f_app -> f_lib [label=" auth.api.getSession()", color="#2a6fbb", fontcolor="#2a6fbb"];
+  f_proxy -> f_lib [label=" betterFetch get-session", style=dashed];
+  f_components -> f_hooks [label=" gọi hook"];
+  f_hooks -> c_schema [label=" api.* — kiểu dữ liệu sinh tự động\n (convex/_generated/api.d.ts)", color="#2a6fbb", fontcolor="#2a6fbb", penwidth=1.5];
+  c_schema -> c_topics [style=dotted, color="#b06000"];
+  c_schema -> c_search [style=dotted, color="#b06000"];
+  c_schema -> c_other [style=dotted, color="#b06000"];
+  c_topics -> c_other [label=" ngầm: gọi chéo qua internal.*", style=dotted, color="#b06000", constraint=false];
+  p_flask -> p_checker [label=" POST /run"];
+  p_flask -> p_gen [label=" POST /run"];
+  p_gen -> c_other [label=" ghi bằng tên chuỗi:\n “topics:createTopic”, “blocks:createBlock”\n (KHÔNG kiểm tra kiểu)", color="#c5221f", fontcolor="#c5221f", penwidth=1.6];
+  p_gen -> c_schema [label=" phải khớp hợp đồng\n validator bằng tay", style=dashed, color="#c5221f", fontcolor="#c5221f", dir=back];
+  m_db -> f_lib [label=" chạy migration", style=dotted, constraint=false];
+  m_cfg -> f_app [label=" build &amp; deploy", style=dotted, constraint=false];
+
+  { rank=same; f_app; f_proxy; m_cfg; }
+  { rank=same; f_components; c_schema; p_flask; m_db; }
+  { rank=same; f_hooks; c_topics; p_checker; m_docs; }
+  { rank=same; f_lib; c_search; p_gen; }
+  { rank=same; c_other; }
+}

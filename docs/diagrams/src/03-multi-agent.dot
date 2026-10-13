@@ -58,7 +58,7 @@ digraph agents {
 
     a11 [fillcolor="#ffffff", color="#b06000", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
       <TR><TD ALIGN="LEFT"><B>11. ConvexInserterAgent</B></TD><TD ALIGN="RIGHT"><FONT COLOR="#c5221f" POINT-SIZE="10">gemini-2.5-flash</FONT></TD></TR>
-      <TR><TD ALIGN="LEFT" COLSPAN="2"><FONT COLOR="#5f6368" POINT-SIZE="10">insert_topic_to_convex() → createTopic + createBlock ×6 + createEmbedding + notification</FONT></TD></TR></TABLE>>];
+      <TR><TD ALIGN="LEFT" COLSPAN="2"><FONT COLOR="#5f6368" POINT-SIZE="10">insert_topic_to_convex() → createTopic + createBlock ×7 + createEmbedding + notification</FONT></TD></TR></TABLE>>];
   }
 
   /* ---------- dịch vụ ngoài, nối vào các agent đang dùng ---------- */

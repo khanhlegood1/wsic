@@ -185,6 +185,8 @@ Explore the comprehensive documentation to understand WSIC's architecture and ca
 - **[API Reference](./docs/api-reference.md)** - Authentication and database integration
 - **[Architecture diagrams (Tiếng Việt)](./docs/architecture.md)** - Sơ đồ kiến trúc hệ thống, frontend, tìm kiếm, pipeline đa tác tử, xác thực và mô hình dữ liệu
 - **[Project Structure](./docs/project-structure.md)** - Codebase organization and architecture
+- **[White Paper (Tiếng Việt)](./docs/whitepaper.md)** - Kiến trúc, pipeline 11 tác tử, đánh giá rủi ro và lộ trình phát triển
+- **[C4 Model (Tiếng Việt)](./docs/c4-architecture.md)** - Sơ đồ C4: ngữ cảnh, container, component và mã nguồn
 
 ---
 

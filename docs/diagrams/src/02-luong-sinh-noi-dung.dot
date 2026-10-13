@@ -19,7 +19,7 @@ digraph brew {
   parse [label="extract_model_response() → parse_json_from_markdown()\nLấy JSON cuối cùng của module", fillcolor="#f3e8fd", color="#8430ce"];
   retry [label="JSON lỗi / success = false\n→ trả HTTP 500 để QStash thử lại\n(tối đa 3 lần, cách nhau 30 giây)", shape=diamond, style="filled", fillcolor="#fff7d6", color="#b06000", fontsize=13, margin="0.1,0.05"];
   fail [label="Hết lượt thử lại\n→ thông báo lỗi cho người dùng\n(notifications:createNotification)", fillcolor="#fce8e6", color="#c5221f"];
-  convex [label="ConvexInserterAgent ghi vào Convex\n• topics:createTopic\n• embeddings:createEmbedding (Gemini 768d)\n• blocks:createBlock ×6 (brief, quiz, deep, reorder,\n  real_world_impact, final_quiz, summary/flashcards)\n• notifications:createNotification (“topic_generated”)", fillcolor="#fef7e0", color="#b06000"];
+  convex [label="ConvexInserterAgent ghi vào Convex\n• topics:createTopic\n• embeddings:createEmbedding (Gemini 768d)\n• blocks:createBlock ×7 (brief, quiz, deep, reorder,\n  real_world_impact, final_quiz, summary/flashcards)\n• notifications:createNotification (“topic_generated”)", fillcolor="#fef7e0", color="#b06000"];
   done [label="Convex đẩy dữ liệu realtime qua WebSocket\nClient nhận thông báo → toast + chủ đề mới xuất hiện\n(hooks/useNotifications.ts)", fillcolor="#e6f4ea", color="#137333"];
 
   start -> miss [label="không tìm thấy nội dung"];

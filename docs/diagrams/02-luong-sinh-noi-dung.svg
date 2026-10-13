@@ -199,7 +199,7 @@
 <text xml:space="preserve" text-anchor="middle" x="196.69" y="-91.98" font-family="DejaVu Sans" font-size="13.00">ConvexInserterAgent ghi vào Convex</text>
 <text xml:space="preserve" text-anchor="middle" x="196.69" y="-76.38" font-family="DejaVu Sans" font-size="13.00">• topics:createTopic</text>
 <text xml:space="preserve" text-anchor="middle" x="196.69" y="-60.78" font-family="DejaVu Sans" font-size="13.00">• embeddings:createEmbedding (Gemini 768d)</text>
-<text xml:space="preserve" text-anchor="middle" x="196.69" y="-45.18" font-family="DejaVu Sans" font-size="13.00">• blocks:createBlock ×6 (brief, quiz, deep, reorder,</text>
+<text xml:space="preserve" text-anchor="middle" x="196.69" y="-45.18" font-family="DejaVu Sans" font-size="13.00">• blocks:createBlock ×7 (brief, quiz, deep, reorder,</text>
 <text xml:space="preserve" text-anchor="middle" x="196.69" y="-29.58" font-family="DejaVu Sans" font-size="13.00"> &#160;real_world_impact, final_quiz, summary/flashcards)</text>
 <text xml:space="preserve" text-anchor="middle" x="196.69" y="-13.98" font-family="DejaVu Sans" font-size="13.00">• notifications:createNotification (“topic_generated”)</text>
 </g>
