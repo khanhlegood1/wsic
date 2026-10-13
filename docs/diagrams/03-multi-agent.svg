@@ -175,7 +175,7 @@
 <path fill="#ffffff" stroke="#b06000" stroke-width="1.3" d="M880.97,-76.88C880.97,-76.88 414.35,-76.88 414.35,-76.88 408.35,-76.88 402.35,-70.88 402.35,-64.88 402.35,-64.88 402.35,-36 402.35,-36 402.35,-30 408.35,-24 414.35,-24 414.35,-24 880.97,-24 880.97,-24 886.97,-24 892.97,-30 892.97,-36 892.97,-36 892.97,-64.88 892.97,-64.88 892.97,-70.88 886.97,-76.88 880.97,-76.88"/>
 <text xml:space="preserve" text-anchor="start" x="417.31" y="-55.54" font-family="DejaVu Sans" font-weight="bold" font-size="13.00">11. ConvexInserterAgent</text>
 <text xml:space="preserve" text-anchor="start" x="796.78" y="-54.44" font-family="DejaVu Sans" font-size="10.00" fill="#c5221f">gemini&#45;2.5&#45;flash</text>
-<text xml:space="preserve" text-anchor="start" x="417.31" y="-36.64" font-family="DejaVu Sans" font-size="10.00" fill="#5f6368">insert_topic_to_convex() → createTopic + createBlock ×6 + createEmbedding + notification</text>
+<text xml:space="preserve" text-anchor="start" x="417.31" y="-36.64" font-family="DejaVu Sans" font-size="10.00" fill="#5f6368">insert_topic_to_convex() → createTopic + createBlock ×7 + createEmbedding + notification</text>
 </g>
 <!-- a10&#45;&gt;a11 -->
 <g id="edge10" class="edge">

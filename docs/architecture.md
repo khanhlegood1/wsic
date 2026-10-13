@@ -2,6 +2,8 @@
 
 > Tài liệu này mô tả kiến trúc thực tế của mã nguồn tại thời điểm viết, **được đối chiếu trực tiếp với code** (không sao chép lại các mô tả cũ trong `README.md`/`docs/` khi chúng đã lệch).
 > Toàn bộ sơ đồ nằm trong [`docs/diagrams/`](./diagrams/) (PNG + SVG + mã nguồn Graphviz).
+> Bộ sơ đồ theo **mô hình C4** (ngữ cảnh → container → component → mã nguồn): [`c4-architecture.md`](./c4-architecture.md).
+> Bản phân tích thiết kế, đánh giá và lộ trình: [`whitepaper.md`](./whitepaper.md).
 
 ## 1. Tóm tắt trong 30 giây
 
@@ -14,7 +16,7 @@ WSIC là một ứng dụng học tập: người dùng tìm một chủ đề, 
 | Dữ liệu chính | **Convex** (BaaS, realtime, vector search 768 chiều) | `topics`, `categories`, `blocks`, `embeddings`, `userTopicInteractions`, `notifications` |
 | Dữ liệu xác thực | **PostgreSQL** (thư viện `pg`) | Bảng `user`, `session`, `account`, `verification` của better-auth |
 | Hàng đợi | **Upstash QStash** | Giao việc sinh nội dung, tự động thử lại 3 lần, cách nhau 30 giây |
-| Điều phối sinh nội dung | **Render** — `generator_api` (Flask + Gunicorn) | Kiểm tra chủ đề, gọi các agent, parse JSON, chống trùng |
+| Điều phối sinh nội dung | **Render** — `generator_api` (Flask + Gunicorn) | Kiểm tra chủ đề, gọi các agent, parse JSON (chống trùng: **chưa có** — xem TODO ở `app.py` và §9.2 whitepaper) |
 | Tác tử AI | **Google Cloud Run** — ADK (`agents/topic-checker`, `agents/topic-generator`) | 1 agent kiểm duyệt + 11 sub-agent sinh nội dung |
 | Dịch vụ AI ngoài | Gemini (`2.5-flash`, `2.0-flash-lite`, `gemini-embedding-001`), Exa AI, Serper | Sinh nội dung, embedding, nghiên cứu web, tìm ảnh thumbnail |
 | Triển khai | Vercel (web) + Render (worker Flask) + Cloud Run (agent) + Convex Cloud | `vercel.json` chạy `convex deploy` trong mỗi lần build |
