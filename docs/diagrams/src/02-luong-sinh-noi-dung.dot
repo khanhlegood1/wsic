@@ -1,0 +1,45 @@
+digraph brew {
+  graph [
+    rankdir=TB, fontname="DejaVu Sans", fontsize=26, labelloc="t",
+    label="WSIC — Luồng sinh nội dung theo yêu cầu (“Brew your topic”)\ntừ lúc người dùng bấm nút đến khi nhận thông báo",
+    bgcolor="#ffffff", pad=0.5, nodesep=0.45, ranksep=0.55, compound=true, newrank=true
+  ];
+  node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=13, color="#3c4043", penwidth=1.3, fillcolor="#ffffff", margin="0.22,0.14"];
+  edge [fontname="DejaVu Sans", fontsize=11, color="#5f6368", penwidth=1.3, arrowsize=0.75, fontcolor="#3c4043"];
+
+  start [label="Người dùng tìm kiếm một chủ đề\ncomponents/pages/SearchResults.tsx", fillcolor="#e8f0fe", color="#1a73e8"];
+  miss  [label="Không có kết quả phù hợp\n→ hiện khối “Brew your topic”", fillcolor="#e8f0fe", color="#1a73e8"];
+  queue [label="POST /api/queue-topic-request\n{ topic, difficulty, user_id }\napp/api/queue-topic-request/route.ts", fillcolor="#e6f4ea", color="#137333"];
+  qstash [label="Upstash QStash — publishJSON()\nurl = TOPIC_GENERATOR_RENDER_URL\nretries = 3  ·  retryDelay = 30s", fillcolor="#f3e8fd", color="#8430ce"];
+  flask [label="Render Web Service — Flask /generate-topic\ngenerator_api/app.py\nTạo session ADK: POST /apps/{app}/users/{user_id}/sessions/{session_id}", fillcolor="#f3e8fd", color="#8430ce"];
+  check [label="Bước 1 — Kiểm tra chủ đề\ncheck_topic_validity() → Cloud Run topic-checker\nTopicCheckerAgent (gemini-2.5-flash)", fillcolor="#fce8e6", color="#c5221f", shape=box];
+  decision [label="Chủ đề hợp lệ?", shape=diamond, style="filled", fillcolor="#fff7d6", color="#b06000", fontsize=13, margin="0.1,0.05"];
+  invalid [label="INVALID\nTrả 489 (Upstash-NonRetryable-Error)\nAgent tạo thông báo “bad_topic” trong Convex", fillcolor="#fce8e6", color="#c5221f"];
+  run [label="Bước 2 — POST /run  (streaming=false)\nCloud Run topic-generator\nOrchestratorAgent = SequentialAgent\n11 agent chạy tuần tự (xem sơ đồ 03)", fillcolor="#fce8e6", color="#c5221f"];
+  parse [label="extract_model_response() → parse_json_from_markdown()\nLấy JSON cuối cùng của module", fillcolor="#f3e8fd", color="#8430ce"];
+  retry [label="JSON lỗi / success = false\n→ trả HTTP 500 để QStash thử lại\n(tối đa 3 lần, cách nhau 30 giây)", shape=diamond, style="filled", fillcolor="#fff7d6", color="#b06000", fontsize=13, margin="0.1,0.05"];
+  fail [label="Hết lượt thử lại\n→ thông báo lỗi cho người dùng\n(notifications:createNotification)", fillcolor="#fce8e6", color="#c5221f"];
+  convex [label="ConvexInserterAgent ghi vào Convex\n• topics:createTopic\n• embeddings:createEmbedding (Gemini 768d)\n• blocks:createBlock ×6 (brief, quiz, deep, reorder,\n  real_world_impact, final_quiz, summary/flashcards)\n• notifications:createNotification (“topic_generated”)", fillcolor="#fef7e0", color="#b06000"];
+  done [label="Convex đẩy dữ liệu realtime qua WebSocket\nClient nhận thông báo → toast + chủ đề mới xuất hiện\n(hooks/useNotifications.ts)", fillcolor="#e6f4ea", color="#137333"];
+
+  start -> miss [label="không tìm thấy nội dung"];
+  miss -> queue [label="người dùng bấm\n“Brew this topic”"];
+  queue -> qstash [label="202 Accepted +\nqstashMessageId"];
+  qstash -> flask [label="HTTP POST\n(đã ký, tự động thử lại)"];
+  flask -> check;
+  check -> decision;
+  decision -> invalid [label="không"];
+  decision -> run [label="có", color="#137333", fontcolor="#137333"];
+  invalid -> fail;
+  run -> parse;
+  parse -> retry;
+  retry -> fail [label="quá 3 lần"];
+  retry -> convex [label="JSON hợp lệ\n(success = true)", color="#137333", fontcolor="#137333"];
+  convex -> done [label="realtime", color="#b06000", fontcolor="#b06000"];
+  done -> start [style=invis];
+
+  retry -> run [label="HTTP 500 → QStash gửi lại", style=dashed, color="#c5221f", fontcolor="#c5221f", constraint=false];
+
+  { rank=same; check; decision; }
+  { rank=same; convex; done; }
+}

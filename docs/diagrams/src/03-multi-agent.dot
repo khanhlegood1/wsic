@@ -1,0 +1,97 @@
+digraph agents {
+  graph [
+    rankdir=TB, fontname="DejaVu Sans", fontsize=24, labelloc="t",
+    label="WSIC — Pipeline đa tác tử (Google ADK · topic-generator)\nOrchestratorAgent = SequentialAgent gồm 11 sub-agent chạy nối tiếp, chia sẻ state qua output_key",
+    bgcolor="#ffffff", pad=0.5, nodesep=0.35, ranksep=0.75, compound=true, newrank=true
+  ];
+  node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=13, color="#3c4043", penwidth=1.3, fillcolor="#ffffff", margin="0.18,0.12"];
+  edge [fontname="DejaVu Sans", fontsize=11, color="#5f6368", penwidth=1.3, arrowsize=0.7, fontcolor="#3c4043"];
+
+  subgraph cluster_seq1 {
+    label="NHÓM 1 — thu thập & nội dung cốt lõi  (bắt buộc tuần tự vì agent sau đọc state của agent trước)";
+    labeljust="l"; fontsize=14; fontcolor="#137333";
+    style="rounded,filled"; fillcolor="#f0f8f2"; color="#137333"; penwidth=1.4; margin=16;
+
+    a1 [fillcolor="#ffffff", color="#137333", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+      <TR><TD ALIGN="LEFT"><B>1. ResearchAgentBrief</B></TD><TD ALIGN="RIGHT"><FONT COLOR="#c5221f" POINT-SIZE="10">gemini-2.5-flash</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT" COLSPAN="2"><FONT COLOR="#5f6368" POINT-SIZE="10">exa_search() → nghiên cứu tổng quan  ·  output_key: research_brief_output</FONT></TD></TR></TABLE>>];
+    a2 [fillcolor="#ffffff", color="#137333", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+      <TR><TD ALIGN="LEFT"><B>2. QuizAgent</B></TD><TD ALIGN="RIGHT"><FONT COLOR="#8430ce" POINT-SIZE="10">gemini-2.0-flash-lite</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT" COLSPAN="2"><FONT COLOR="#5f6368" POINT-SIZE="10">output_schema: QuizAgentOutput (3 câu hỏi)  ·  output_key: quiz_output</FONT></TD></TR></TABLE>>];
+    a3 [fillcolor="#ffffff", color="#137333", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+      <TR><TD ALIGN="LEFT"><B>3. ResearchAgentDeep</B></TD><TD ALIGN="RIGHT"><FONT COLOR="#c5221f" POINT-SIZE="10">gemini-2.5-flash</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT" COLSPAN="2"><FONT COLOR="#5f6368" POINT-SIZE="10">exa_search() → nghiên cứu chuyên sâu  ·  output_key: research_deep_output</FONT></TD></TR></TABLE>>];
+    a4 [fillcolor="#ffffff", color="#137333", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+      <TR><TD ALIGN="LEFT"><B>4. ReorderAgent</B></TD><TD ALIGN="RIGHT"><FONT COLOR="#8430ce" POINT-SIZE="10">gemini-2.0-flash-lite</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT" COLSPAN="2"><FONT COLOR="#5f6368" POINT-SIZE="10">output_schema: ReorderAgentOutput  ·  output_key: reorder_output</FONT></TD></TR></TABLE>>];
+    a5 [fillcolor="#ffffff", color="#137333", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+      <TR><TD ALIGN="LEFT"><B>5. RealWorldImpactAgent</B></TD><TD ALIGN="RIGHT"><FONT COLOR="#c5221f" POINT-SIZE="10">gemini-2.5-flash</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT" COLSPAN="2"><FONT COLOR="#5f6368" POINT-SIZE="10">exa_search() → tác động thực tế + source_urls  ·  output_key: impact_output</FONT></TD></TR></TABLE>>];
+    a6 [fillcolor="#ffffff", color="#137333", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+      <TR><TD ALIGN="LEFT"><B>6. FinalQuizAgent</B></TD><TD ALIGN="RIGHT"><FONT COLOR="#8430ce" POINT-SIZE="10">gemini-2.0-flash-lite</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT" COLSPAN="2"><FONT COLOR="#5f6368" POINT-SIZE="10">output_schema: FinalQuizAgentOutput  ·  output_key: final_quiz_output</FONT></TD></TR></TABLE>>];
+    a7 [fillcolor="#ffffff", color="#137333", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+      <TR><TD ALIGN="LEFT"><B>7. SummaryAgent</B></TD><TD ALIGN="RIGHT"><FONT COLOR="#8430ce" POINT-SIZE="10">gemini-2.0-flash-lite</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT" COLSPAN="2"><FONT COLOR="#5f6368" POINT-SIZE="10">flash_cards  ·  output_key: summary_output</FONT></TD></TR></TABLE>>];
+  }
+
+  subgraph cluster_par {
+    label="NHÓM 2 — độc lập về dữ liệu ⇒ có thể chuyển thành ParallelAgent để chạy song song (parallel fan-out/gather)";
+    labeljust="l"; fontsize=14; fontcolor="#8430ce";
+    style="rounded,dashed,filled"; fillcolor="#faf3ff"; color="#8430ce"; penwidth=1.4; margin=16;
+
+    a8 [fillcolor="#ffffff", color="#8430ce", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+      <TR><TD ALIGN="LEFT"><B>8. CategoryTagsDescriptionAgent</B></TD><TD ALIGN="RIGHT"><FONT COLOR="#c5221f" POINT-SIZE="10">2.5-flash</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT" COLSPAN="2"><FONT COLOR="#5f6368" POINT-SIZE="10">get_categories_from_convex() → chọn category, tags, mô tả  ·  output_key: category_tags_description_output</FONT></TD></TR></TABLE>>];
+    a9 [fillcolor="#ffffff", color="#8430ce", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+      <TR><TD ALIGN="LEFT"><B>9. ThumbnailGeneratorAgent</B></TD><TD ALIGN="RIGHT"><FONT COLOR="#c5221f" POINT-SIZE="10">2.5-flash</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT" COLSPAN="2"><FONT COLOR="#5f6368" POINT-SIZE="10">serper_image_search() → thumbnail_url  ·  output_key: thumbnail_output</FONT></TD></TR></TABLE>>];
+    a10 [fillcolor="#ffffff", color="#8430ce", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+      <TR><TD ALIGN="LEFT"><B>10. AssemblerAgent</B></TD><TD ALIGN="RIGHT"><FONT COLOR="#8430ce" POINT-SIZE="10">gemini-2.0-flash-lite</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT" COLSPAN="2"><FONT COLOR="#5f6368" POINT-SIZE="10">gom mọi output_key → JSON module hoàn chỉnh  ·  output_key: final_module</FONT></TD></TR></TABLE>>];
+  }
+
+  subgraph cluster_final {
+    label="NHÓM 3 — ghi kết quả vào Convex và thông báo cho người dùng";
+    labeljust="l"; fontsize=14; fontcolor="#b06000";
+    style="rounded,filled"; fillcolor="#fffaf0"; color="#b06000"; penwidth=1.4; margin=16;
+
+    a11 [fillcolor="#ffffff", color="#b06000", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+      <TR><TD ALIGN="LEFT"><B>11. ConvexInserterAgent</B></TD><TD ALIGN="RIGHT"><FONT COLOR="#c5221f" POINT-SIZE="10">gemini-2.5-flash</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT" COLSPAN="2"><FONT COLOR="#5f6368" POINT-SIZE="10">insert_topic_to_convex() → createTopic + createBlock ×6 + createEmbedding + notification</FONT></TD></TR></TABLE>>];
+  }
+
+  /* ---------- dịch vụ ngoài, nối vào các agent đang dùng ---------- */
+  exa    [shape=box, style="rounded,filled", fillcolor="#e4f7fb", color="#0b7285", fontsize=12, label="Exa AI\nexa_search()\nnguồn web + trích xuất"];
+  serper [shape=box, style="rounded,filled", fillcolor="#e4f7fb", color="#0b7285", fontsize=12, label="Serper API\nserper_image_search()\nảnh thumbnail"];
+  cvexh  [shape=box, style="rounded,filled", fillcolor="#e4f7fb", color="#0b7285", fontsize=12, label="ConvexClient\n(categories:getCategories)"];
+  gemini [shape=box, style="rounded,filled", fillcolor="#e4f7fb", color="#0b7285", fontsize=12, label="Google Gemini\n2.5-flash / 2.0-flash-lite\n2.5-flash dùng tool + JSON schema"];
+  convexdb [shape=box, style="rounded,filled", fillcolor="#fef7e0", color="#b06000", fontsize=12, label="Convex\ntopics · blocks\nembeddings · notifications"];
+
+  /* ---------- các bước nối tiếp ---------- */
+  a1 -> a2  [label="research_brief_output"];
+  a2 -> a3  [label="quiz_output"];
+  a3 -> a4  [label="research_deep_output"];
+  a4 -> a5  [label="reorder_output"];
+  a5 -> a6  [label="impact_output"];
+  a6 -> a7  [label="final_quiz_output"];
+  a7 -> a8  [label="summary_output"];
+  a8 -> a9  [label="category_tags_description_output", style=dashed, color="#8430ce", fontcolor="#8430ce"];
+  a9 -> a10 [label="thumbnail_output", style=dashed, color="#8430ce", fontcolor="#8430ce"];
+  a10 -> a11 [label="final_module"];
+
+  exa -> a1 [style=dotted, color="#0b7285", fontcolor="#0b7285", dir=none];
+  exa -> a3 [style=dotted, color="#0b7285", dir=none, constraint=false];
+  exa -> a5 [style=dotted, color="#0b7285", dir=none, constraint=false];
+  serper -> a9 [style=dotted, color="#0b7285", dir=none];
+  cvexh -> a8 [style=dotted, color="#0b7285", dir=none];
+  gemini -> a2 [style=dotted, color="#0b7285", dir=none];
+  a11 -> convexdb [label="ghi dữ liệu\n(ConvexClient)", color="#b06000", fontcolor="#b06000"];
+  convexdb -> a11 [style=invis];
+
+  { rank=same; a1; exa; }
+  { rank=same; a2; gemini; }
+  { rank=same; a8; cvexh; }
+  { rank=same; a9; serper; }
+  { rank=same; a11; convexdb; }
+}

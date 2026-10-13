@@ -1,0 +1,90 @@
+digraph overview {
+  graph [
+    rankdir=TB,
+    fontname="DejaVu Sans", fontsize=26, labelloc="t", labeljust="c",
+    label="WSIC — Kiến trúc tổng quan hệ thống\nNext.js 16 (Vercel)  ·  Convex  ·  PostgreSQL  ·  QStash  ·  Render  ·  Google Cloud Run  ·  Gemini",
+    bgcolor="#ffffff", pad=0.5, nodesep=0.4, ranksep=0.75,
+    compound=true, splines=spline, newrank=true
+  ];
+  node [
+    shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=13,
+    color="#3c4043", penwidth=1.3, fillcolor="#ffffff", margin="0.22,0.14"
+  ];
+  edge [
+    fontname="DejaVu Sans", fontsize=11, color="#5f6368", penwidth=1.3,
+    arrowsize=0.75, fontcolor="#3c4043"
+  ];
+  subgraph cluster_graph_style { style=invis; }
+
+  /* ------------------------------------------------ người dùng */
+  subgraph cluster_user {
+    label="Người dùng"; fontsize=15; fontname="DejaVu Sans"; style="rounded,filled";
+    fillcolor="#f1f3f4"; color="#9aa0a6"; penwidth=1.2; margin=12;
+    browser [label="Trình duyệt Web\n(Desktop / Tablet / Mobile)", fillcolor="#e8f0fe", color="#1a73e8"];
+  }
+
+  /* ------------------------------------------------ Vercel / Next.js */
+  subgraph cluster_next {
+    label="Vercel · Next.js 16 App Router (Node.js runtime)"; fontsize=15; fontname="DejaVu Sans";
+    style="rounded,filled"; fillcolor="#e6f4ea"; color="#137333"; penwidth=1.2; margin=12;
+    proxy   [label="proxy.ts\n(chặn /user/* và /topic/*\nkiểm tra session)", fillcolor="#ffffff", color="#137333"];
+    api     [label="API Routes\n/api/auth/[...all]  (better-auth)\n/api/queue-topic-request  (đẩy vào QStash)", fillcolor="#ffffff", color="#137333"];
+    sc      [label="Server Components\napp/**/page.tsx\ngenerateMetadata · fetchQuery", fillcolor="#ffffff", color="#137333"];
+    cc      [label="Client Components\ncomponents/pages/*  ·  hooks/*\nProviders: Convex · React Query · Theme", fillcolor="#ffffff", color="#137333"];
+  }
+
+  /* ------------------------------------------------ dữ liệu */
+  subgraph cluster_data {
+    label="Tầng dữ liệu"; fontsize=15; fontname="DejaVu Sans";
+    style="rounded,filled"; fillcolor="#fef7e0"; color="#b06000"; penwidth=1.2; margin=12;
+    convex [label="Convex (BaaS, realtime)\ntopics · categories · blocks\nembeddings (vector 768 chiều)\nuserTopicInteractions\nnotificationTypes · notifications\n\nCron 1 giờ/lần: updateTrendingStatus", fillcolor="#ffffff", color="#b06000"];
+    pg     [label="PostgreSQL (better-auth)\nuser · session · account · verification\n(plugin: anonymous)", fillcolor="#ffffff", color="#b06000"];
+  }
+
+  /* ------------------------------------------------ hàng đợi + workers */
+  subgraph cluster_async {
+    label="Luồng sinh nội dung bất đồng bộ"; fontsize=15; fontname="DejaVu Sans";
+    style="rounded,filled"; fillcolor="#f3e8fd"; color="#8430ce"; penwidth=1.2; margin=12;
+    qstash    [label="Upstash QStash\nhàng đợi tin nhắn\nretries = 3, retryDelay = 30s", fillcolor="#ffffff", color="#8430ce"];
+    flask     [label="Render — Web Service\ngenerator_api (Flask + Gunicorn)\n/ok · /check-topic · /generate-topic", fillcolor="#ffffff", color="#8430ce"];
+    checker   [label="Google Cloud Run\nADK · topic-checker\n(TopicCheckerAgent)", fillcolor="#fce8e6", color="#c5221f"];
+    generator [label="Google Cloud Run\nADK · topic-generator\nOrchestratorAgent = SequentialAgent\n11 agent tuần tự", fillcolor="#fce8e6", color="#c5221f"];
+  }
+
+  /* ------------------------------------------------ dịch vụ AI */
+  subgraph cluster_ai {
+    label="Dịch vụ AI bên ngoài"; fontsize=15; fontname="DejaVu Sans";
+    style="rounded,filled"; fillcolor="#e4f7fb"; color="#0b7285"; penwidth=1.2; margin=12;
+    gemini [label="Google Gemini\ngemini-2.5-flash · gemini-2.0-flash-lite\ngemini-embedding-001 (768d)", fillcolor="#ffffff", color="#0b7285"];
+    exa    [label="Exa AI\ntìm & trích xuất nguồn web", fillcolor="#ffffff", color="#0b7285"];
+    serper [label="Serper API\ntìm ảnh thumbnail", fillcolor="#ffffff", color="#0b7285"];
+  }
+
+  /* ------------------------------------------------ luồng chính */
+  browser -> proxy  [label="HTTPS"];
+  proxy   -> sc      [label="hợp lệ"];
+  proxy   -> cc      [label="hợp lệ", style=dashed];
+  browser -> api     [label="POST /api/queue-topic-request\n{ topic, difficulty, user_id }", constraint=false];
+
+  sc -> convex [label="fetchQuery / preloadQuery\n(SSR, HTTP)"];
+  sc -> pg     [label="auth.api.getSession()"];
+  cc -> convex [dir=both, label="useQuery · useMutation (WebSocket 2 chiều)\nConvex đẩy dữ liệu realtime → toast", penwidth=1.8, color="#b06000", fontcolor="#b06000"];
+  cc -> api    [label="đăng nhập Google /\nđăng nhập ẩn danh"];
+  api -> pg    [label="session + OAuth"];
+
+  api -> qstash [label="publishJSON()", color="#8430ce", fontcolor="#8430ce"];
+  qstash -> flask [label="HTTP POST (retry)", color="#8430ce", fontcolor="#8430ce"];
+  flask -> checker   [label="POST /run\n(run_service)", color="#8430ce", fontcolor="#8430ce"];
+  flask -> generator [label="POST /run\n(sau khi topic hợp lệ)", color="#8430ce", fontcolor="#8430ce"];
+
+  generator -> convex [label="ConvexClient: createTopic,\ncreateBlock, createEmbedding,\nnotifications:createNotification", style=dashed, color="#c5221f", fontcolor="#c5221f"];
+  checker   -> convex [label="tạo thông báo “bad_topic”", style=dashed, color="#c5221f", fontcolor="#c5221f"];
+
+
+  convex    -> gemini [label="action: sinh vector 768 chiều", style=dotted, color="#0b7285", fontcolor="#0b7285"];
+  generator -> gemini [label="sinh nội dung + embedding", style=dotted, color="#0b7285", fontcolor="#0b7285"];
+  generator -> exa    [label="exa_search()", style=dotted, color="#0b7285", fontcolor="#0b7285"];
+  generator -> serper [label="serper_image_search()", style=dotted, color="#0b7285", fontcolor="#0b7285"];
+
+  convex -> convex [label="cron mỗi giờ", style=dashed, color="#b06000", fontcolor="#b06000"];
+}

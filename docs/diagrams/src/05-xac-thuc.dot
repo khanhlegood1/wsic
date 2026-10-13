@@ -1,0 +1,86 @@
+digraph auth {
+  graph [
+    rankdir=TB, fontname="DejaVu Sans", fontsize=24, labelloc="t",
+    label="WSIC — Xác thực & phân quyền (Better Auth + PostgreSQL + proxy.ts)",
+    bgcolor="#ffffff", pad=0.5, nodesep=0.45, ranksep=0.6, compound=true, newrank=true
+  ];
+  node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=13, color="#3c4043", penwidth=1.3, fillcolor="#ffffff", margin="0.2,0.14"];
+  edge [fontname="DejaVu Sans", fontsize=11, color="#5f6368", penwidth=1.3, arrowsize=0.72, fontcolor="#3c4043"];
+
+  subgraph cluster_client {
+    label="Trình duyệt"; labeljust="l"; fontsize=14; fontcolor="#1a73e8";
+    style="rounded,filled"; fillcolor="#f4f8fe"; color="#1a73e8"; penwidth=1.4; margin=14;
+
+    login [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+      <TR><TD ALIGN="LEFT"><B>app/login/page.tsx</B></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">components/auth/GoogleSignInButton.tsx (OAuth Google)</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">components/auth/AnonymousHelpDialog.tsx (đăng nhập ẩn danh)</FONT></TD></TR></TABLE>>];
+    client [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+      <TR><TD ALIGN="LEFT"><B>lib/auth-client.ts</B></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">createAuthClient({ baseURL: NEXT_PUBLIC_BASE_URL })</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">plugins: [anonymousClient()]  →  export signIn, signOut, useSession</FONT></TD></TR></TABLE>>];
+    topbar [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+      <TR><TD ALIGN="LEFT"><B>components/layout/TopBar.tsx</B>  (nhận prop session)</TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">useSession() để hiển thị avatar / nút đăng nhập / thông báo</FONT></TD></TR></TABLE>>];
+  }
+
+  subgraph cluster_next {
+    label="Next.js 16 trên Vercel"; labeljust="l"; fontsize=14; fontcolor="#137333";
+    style="rounded,filled"; fillcolor="#f0f8f2"; color="#137333"; penwidth=1.4; margin=14;
+
+    proxy [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+      <TR><TD ALIGN="LEFT"><B>proxy.ts</B>  (tên mới của middleware.ts từ Next.js 16)</TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">config.matcher = ["/user/:path*", "/topic/:path*"]</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">betterFetch("/api/auth/get-session", { cookie }) → không có session thì redirect</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">→ /login?redirect_url=&lt;url ban đầu&gt;</FONT></TD></TR></TABLE>>];
+    route [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+      <TR><TD ALIGN="LEFT"><B>app/api/auth/[...all]/route.ts</B></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">export const { POST, GET } = toNextJsHandler(auth)</FONT></TD></TR></TABLE>>];
+    authconf [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+      <TR><TD ALIGN="LEFT"><B>lib/auth.ts — betterAuth({ … })</B></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">database: new Pool(pgConfig)</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">emailAndPassword: { enabled, minPasswordLength: 8 }</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">plugins: [anonymous({ emailDomainName: "guest.wsic.app" })]</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">socialProviders.google (GOOGLE_CLIENT_ID / SECRET)</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">session.cookieCache: 10 phút (giảm truy vấn DB)</FONT></TD></TR></TABLE>>];
+    ssr [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+      <TR><TD ALIGN="LEFT"><B>Server Components đọc session</B></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">app/layout.tsx → auth.api.getSession({ headers: await headers() })</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">app/user/*/page.tsx → generateMetadata() dùng session.user.name</FONT></TD></TR></TABLE>>];
+    health [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+      <TR><TD ALIGN="LEFT"><B>app/api/health/auth/route.ts (chẩn đoán)</B></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">trả về boolean các biến môi trường (không lộ giá trị)</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">kiểm tra kết nối + 4 bảng + cột isAnonymous + gợi ý mã lỗi</FONT></TD></TR></TABLE>>];
+  }
+
+  subgraph cluster_pg {
+    label="PostgreSQL (better-auth)"; labeljust="l"; fontsize=14; fontcolor="#b06000";
+    style="rounded,filled"; fillcolor="#fffaf0"; color="#b06000"; penwidth=1.4; margin=14;
+    pg [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+      <TR><TD ALIGN="LEFT"><B>Bảng nghiệp vụ của better-auth</B></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">user · session · account · verification</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">Migration: better-auth_migrations/2025-08-16T08-17-13.295Z.sql</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">           better-auth_migrations/2026-10-07-anonymous-plugin.sql</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">           (alter table "user" add column isAnonymous boolean)</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">Cấu hình: lib/db-config.ts (SSL bật mặc định, POSTGRES_SSL=false để tắt)</FONT></TD></TR></TABLE>>];
+  }
+
+  note [fillcolor="#fce8e6", color="#c5221f", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+    <TR><TD ALIGN="LEFT"><B>Hạn chế đã biết (xem todo.md)</B></TD></TR>
+    <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">/api/queue-topic-request chưa kiểm tra session ở phía server</FONT></TD></TR>
+    <TR><TD ALIGN="LEFT"><FONT COLOR="#5f6368" POINT-SIZE="10">→ cần thêm lớp xác thực cho các API route</FONT></TD></TR></TABLE>>];
+
+  login -> client [label="signIn.social / signIn.anonymous"];
+  client -> route [label="POST /api/auth/*"];
+  route -> authconf;
+  authconf -> pg [label="Pool (pg)\ntruy vấn/ghi session", color="#b06000", fontcolor="#b06000"];
+  proxy -> route [label="betterFetch get-session\n(forward cookie)", style=dashed];
+  proxy -> login [label="chưa đăng nhập", style=dashed, color="#c5221f", fontcolor="#c5221f", constraint=false];
+  login -> ssr [label="đăng nhập xong →\nCALLBACK_URL = /user/dashboard", style=dashed, color="#137333", fontcolor="#137333", constraint=false];
+  ssr -> topbar [label="truyền session xuống", style=dashed];
+  ssr -> authconf [label="auth.api.getSession()", dir=back];
+  health -> pg [label="select 1 +\ninformation_schema", style=dotted, color="#b06000", fontcolor="#b06000"];
+  pg -> note [style=invis];
+  route -> note [style=dotted, color="#c5221f", fontcolor="#c5221f", label="lớp xác thực còn thiếu", constraint=false];
+  { rank=same; client; topbar; }
+}

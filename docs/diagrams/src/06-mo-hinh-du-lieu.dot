@@ -1,0 +1,120 @@
+digraph data {
+  graph [
+    rankdir=LR, fontname="DejaVu Sans", fontsize=24, labelloc="t",
+    label="WSIC — Mô hình dữ liệu (Convex schema: convex/schema.ts  ·  PostgreSQL: better-auth)\nCác bảng Convex, chỉ mục (index / searchIndex / vectorIndex) và quan hệ giữa chúng",
+    bgcolor="#ffffff", pad=0.5, nodesep=0.35, ranksep=1.5, compound=true, newrank=true
+  ];
+  node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=12, color="#3c4043", penwidth=1.3, fillcolor="#ffffff", margin="0.16,0.10"];
+  edge [fontname="DejaVu Sans", fontsize=10, color="#5f6368", penwidth=1.2, arrowsize=0.7, fontcolor="#3c4043"];
+
+  subgraph cluster_convex {
+    label="Convex — cơ sở dữ liệu realtime (nguồn sự thật chính của ứng dụng)";
+    labeljust="l"; fontsize=15; fontcolor="#b06000";
+    style="rounded,filled"; fillcolor="#fffaf0"; color="#b06000"; penwidth=1.6; margin=18; nodesep=0.35;
+
+    categories [fillcolor="#fef7e0", color="#b06000", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3">
+      <TR><TD ALIGN="LEFT"><B>categories</B></TD></TR><TR><TD ALIGN="LEFT"><FONT COLOR="#d0c0a0">──────────────────────────────</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">name · slug · description</TD></TR>
+      <TR><TD ALIGN="LEFT">lightHex · darkHex · icon</TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#8430ce">index: by_slug, by_name</FONT></TD></TR>
+    </TABLE>>];
+
+    topics [fillcolor="#fef7e0", color="#b06000", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3">
+      <TR><TD ALIGN="LEFT"><B>topics</B> — thực thể nội dung trung tâm</TD></TR><TR><TD ALIGN="LEFT"><FONT COLOR="#d0c0a0">──────────────────────────────</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">title · description · slug · imageUrl</TD></TR>
+      <TR><TD ALIGN="LEFT">categoryId → categories._id</TD></TR>
+      <TR><TD ALIGN="LEFT">tagIds[] · difficulty</TD></TR>
+      <TR><TD ALIGN="LEFT">estimatedReadTime · isPublished · isTrending</TD></TR>
+      <TR><TD ALIGN="LEFT">viewCount · likeCount · shareCount</TD></TR>
+      <TR><TD ALIGN="LEFT">createdBy (ID user của better-auth)</TD></TR>
+      <TR><TD ALIGN="LEFT">lastUpdated · isAIGenerated · generationPrompt</TD></TR>
+      <TR><TD ALIGN="LEFT">sources[] · metadata{wordCount, readingLevel, …}</TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#d0c0a0">──────────────────────────────</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#8430ce">index: by_slug, by_category, by_trending,</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#8430ce">       by_published, by_created_by</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#137333">searchIndex "search_topics": title</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#137333">  filter: categoryId, isPublished, isTrending</FONT></TD></TR>
+    </TABLE>>];
+
+    blocks [fillcolor="#fef7e0", color="#b06000", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3">
+      <TR><TD ALIGN="LEFT"><B>blocks</B> — từng khối nội dung trong 1 chủ đề</TD></TR><TR><TD ALIGN="LEFT"><FONT COLOR="#d0c0a0">──────────────────────────────</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">topicId → topics._id</TD></TR>
+      <TR><TD ALIGN="LEFT">type: "information" | "activity"</TD></TR>
+      <TR><TD ALIGN="LEFT">order (thứ tự hiển thị)</TD></TR>
+      <TR><TD ALIGN="LEFT">content: union 7 biến thể</TD></TR>
+      <TR><TD ALIGN="LEFT">  · research_brief (depth: brief)</TD></TR>
+      <TR><TD ALIGN="LEFT">  · research_deep (depth: deep)</TD></TR>
+      <TR><TD ALIGN="LEFT">  · real_world_impact (+ source_urls)</TD></TR>
+      <TR><TD ALIGN="LEFT">  · summary (flash_cards)</TD></TR>
+      <TR><TD ALIGN="LEFT">  · quiz · reorder · final_quiz</TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#8430ce">index: by_topic, by_topic_and_order</FONT></TD></TR>
+    </TABLE>>];
+
+    embeddings [fillcolor="#fef7e0", color="#b06000", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3">
+      <TR><TD ALIGN="LEFT"><B>embeddings</B> — vector phục vụ tìm kiếm ngữ nghĩa</TD></TR><TR><TD ALIGN="LEFT"><FONT COLOR="#d0c0a0">──────────────────────────────</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">topicId → topics._id</TD></TR>
+      <TR><TD ALIGN="LEFT">embedding: float64[768] (gemini-embedding-001)</TD></TR>
+      <TR><TD ALIGN="LEFT">contentType: research_brief | research_deep | combined_content</TD></TR>
+      <TR><TD ALIGN="LEFT">difficulty · categoryId (bản sao để lọc)</TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#d0c0a0">──────────────────────────────</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#8430ce">index: by_topic</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#c5221f">vectorIndex "by_embedding": 768 chiều</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#c5221f">  filter: difficulty, categoryId, contentType</FONT></TD></TR>
+    </TABLE>>];
+
+    interactions [fillcolor="#fef7e0", color="#b06000", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3">
+      <TR><TD ALIGN="LEFT"><B>userTopicInteractions</B> — tương tác người dùng</TD></TR><TR><TD ALIGN="LEFT"><FONT COLOR="#d0c0a0">──────────────────────────────</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">userId (ID user của better-auth) · topicId → topics._id</TD></TR>
+      <TR><TD ALIGN="LEFT">interactionType: view | like | save | share | complete</TD></TR>
+      <TR><TD ALIGN="LEFT">metadata: timeSpent, completionPercentage,</TD></TR>
+      <TR><TD ALIGN="LEFT">          shareDestination, notes</TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#8430ce">index: by_user, by_topic, by_user_and_topic,</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#8430ce">       by_user_and_type, by_topic_and_type</FONT></TD></TR>
+    </TABLE>>];
+
+    ntypes [fillcolor="#fef7e0", color="#b06000", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3">
+      <TR><TD ALIGN="LEFT"><B>notificationTypes</B> — danh mục loại thông báo</TD></TR><TR><TD ALIGN="LEFT"><FONT COLOR="#d0c0a0">──────────────────────────────</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">key ("bad_topic", "topic_generated", …)</TD></TR>
+      <TR><TD ALIGN="LEFT">name · description · iconUrl</TD></TR>
+      <TR><TD ALIGN="LEFT">priority (1 cao → 3 thấp)</TD></TR>
+      <TR><TD ALIGN="LEFT">defaultTitle · defaultMessage</TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#8430ce">index: by_key, by_priority</FONT></TD></TR>
+    </TABLE>>];
+
+    notifs [fillcolor="#fef7e0", color="#b06000", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3">
+      <TR><TD ALIGN="LEFT"><B>notifications</B> — thông báo realtime cho người dùng</TD></TR><TR><TD ALIGN="LEFT"><FONT COLOR="#d0c0a0">──────────────────────────────</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">userId · notificationTypeKey → notificationTypes._id</TD></TR>
+      <TR><TD ALIGN="LEFT">title · message · data (any)</TD></TR>
+      <TR><TD ALIGN="LEFT">isRead · isArchived · expiresAt</TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#8430ce">index: by_user, by_user_and_read,</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#8430ce">       by_user_and_archived, by_notification_type, by_expires_at</FONT></TD></TR>
+    </TABLE>>];
+  }
+
+  subgraph cluster_pg {
+    label="PostgreSQL — chỉ phục vụ xác thực (better-auth)"; labeljust="l"; fontsize=15; fontcolor="#0b7285";
+    style="rounded,filled"; fillcolor="#f0fbfd"; color="#0b7285"; penwidth=1.6; margin=18;
+
+    pg [fillcolor="#e4f7fb", color="#0b7285", label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3">
+      <TR><TD ALIGN="LEFT"><B>user</B> · <B>session</B> · <B>account</B> · <B>verification</B></TD></TR><TR><TD ALIGN="LEFT"><FONT COLOR="#d0c0a0">──────────────────────────────</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT">user.isAnonymous (plugin đăng nhập ẩn danh)</TD></TR>
+      <TR><TD ALIGN="LEFT">session.cookieCache 10 phút</TD></TR>
+      <TR><TD ALIGN="LEFT">Migration: better-auth_migrations/*.sql</TD></TR>
+      <TR><TD ALIGN="LEFT">Cấu hình: lib/db-config.ts (pg Pool, SSL)</TD></TR>
+    </TABLE>>];
+  }
+
+  /* ---------- quan hệ ---------- */
+  categories -> topics [label="1 : N\ntopics.categoryId", color="#b06000", fontcolor="#b06000", penwidth=1.6];
+  topics -> blocks [label="1 : N\nblocks.topicId", color="#b06000", fontcolor="#b06000", penwidth=1.6];
+  topics -> embeddings [label="1 : N\nembeddings.topicId", color="#b06000", fontcolor="#b06000", penwidth=1.6];
+  topics -> interactions [label="1 : N\nuserTopicInteractions.topicId", color="#b06000", fontcolor="#b06000", penwidth=1.6];
+  ntypes -> notifs [label="1 : N\nnotificationTypeKey", color="#b06000", fontcolor="#b06000", penwidth=1.6];
+  pg -> interactions [dir=both, style=dashed, color="#c5221f", fontcolor="#c5221f", label="liên kết logic bằng chuỗi ID\n(không có khoá ngoại thật)"];
+  pg -> notifs [dir=both, style=dashed, color="#c5221f", fontcolor="#c5221f", label="liên kết logic bằng chuỗi ID"];
+  pg -> topics [dir=both, style=dashed, color="#c5221f", fontcolor="#c5221f", label="topics.createdBy"];
+
+  { rank=same; categories; topics; pg; }
+  { rank=same; blocks; embeddings; interactions; }
+  { rank=same; ntypes; notifs; }
+}
