@@ -21,14 +21,14 @@ const Footer = () => {
                     <ul>
                         <li>Created with ❤️</li>
                         <li className="inline-flex gap-2">by
-                            <Link href="https://indrajitvijayakumar.in" target="_blank" className="underline">
-                                Indrajit
+                            <Link href="https://www.linkedin.com/in/lexuankhanh" target="_blank" rel="noopener noreferrer" className="underline">
+                                lexuankhanh
                             </Link>
                         </li>
 
                     </ul>
                     <ul>
-                        <Link href="https://github.com/thisisindrajit/wsic" target="_blank">
+                        <Link href="https://github.com/khanhlegood1/wsic" target="_blank" rel="noopener noreferrer">
                             <li className="hover:underline cursor-pointer">Github</li>
                         </Link>
                         <Link href="https://dev.to/thisisindrajit/wsic-why-should-i-care-discover-what-matters-most-46nc" target="_blank">
